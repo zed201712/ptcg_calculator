@@ -35,15 +35,17 @@ func main() {
     
     print("testing end")
     
-    
     let model2 = 模擬抽噴火龍EX()
-    let mathResult = (5...17).map({
-        model.resetCard($0)
-        let model1Result = model.testShuffleAndDrawProbability(10000, 4).toDotString(4)
-        let model2Result = model2.loopTest(10000, 數量: $0).toDotString(4)
-        return "\($0) -> \(model.shuffleAndDrawMath(4).toDotString(4)) - \(model1Result) - \(model2Result)"
-    }).reversed()
-    print(mathResult.joined(separator: "\n"))
+    print(model2.loopTest(10, 數量: 14).小數點後(4))
+    
+//    let model2 = 模擬抽噴火龍EX()
+//    let mathResult = (5...17).map({
+//        model.resetCard($0)
+//        let model1Result = model.testShuffleAndDrawProbability(10000, 4).toDotString(4)
+//        let model2Result = model2.loopTest(10000, 數量: $0).toDotString(4)
+//        return "\($0) -> \(model.shuffleAndDrawMath(4).toDotString(4)) - \(model1Result) - \(model2Result)"
+//    }).reversed()
+//    print(mathResult.joined(separator: "\n"))
     
 //    model.printRedCardProbability(50000, deckCardCount: 10, handCardCount: 3, drawCardCount: 3)
 //    model.printRedCardProbability(50000, deckCardCount: 10, handCardCount: 3, drawCardCount: 4)
@@ -65,11 +67,13 @@ class 模擬抽噴火龍EX {
     let 遊戲: 寶可夢TCG = .init(所有玩家: [噴火龍EX玩家()])
     
     func 關鍵牌測試(_ 數量: Int) -> Bool {
-        遊戲.所有玩家[0].重置()
-        遊戲.所有玩家[0].抽牌堆丟牌(數量: 20 - 數量) {$0 != .噴火龍EX}
-        遊戲.所有玩家[0].抽卡(數量: 4)
+        let 玩家 = 遊戲.所有玩家[0]
+        玩家.重置()
+        玩家.抽牌堆丟牌(數量: 20 - 數量) {$0 != .噴火龍EX}
+        玩家.抽卡(數量: 4)
+        玩家.顯示牌堆資訊()//debug
         
-        return 遊戲.所有玩家[0].手牌.first(where: {$0 == .噴火龍EX}) != nil
+        return 玩家.手牌.first(where: {$0 == .噴火龍EX}) != nil
     }
     
     func loopTest(_ times: Int, 數量: Int) -> Double {
@@ -77,6 +81,7 @@ class 模擬抽噴火龍EX {
             sum, index in
             return sum + (self.關鍵牌測試(數量) ? 1 : 0)
         })
+        print("\(count) / \(times)")//debug
         return Double(count) / Double(times)
     }
 }
@@ -246,11 +251,6 @@ protocol 寶可夢玩家介面 {
 }
 
 extension 寶可夢玩家介面 {
-    func 建立牌組() -> [寶可夢卡] {
-        var cards = 寶可夢卡.博士與精靈球
-        cards.補雜牌()
-        return cards
-    }
     
     func 新回合() {
         新回合抽卡()
@@ -274,7 +274,7 @@ class 陪練玩家: 寶可夢玩家 {
 }
 
 class 噴火龍EX玩家: 寶可夢玩家 {
-    func 建立牌組() -> [寶可夢卡] {
+    override func 建立牌組() -> [寶可夢卡] {
         var cards: [寶可夢卡] = .init(同卡: .噴火龍EX) //+ 寶可夢TCG卡.博士與精靈球
         + .init(同卡: .雜牌基礎寶可夢)//火焰鳥
         + .init(同卡: .雜牌基礎寶可夢)//小火龍
@@ -294,6 +294,20 @@ class 寶可夢玩家: 寶可夢玩家介面 {
     private(set) var 抽牌堆: [寶可夢卡] = []
     private(set) var 棄牌堆: [寶可夢卡] = []
     
+    func 顯示牌堆資訊(_ 牌堆名稱: [KeyPath<寶可夢玩家, [寶可夢卡]>] = [\.手牌, \.抽牌堆, \.棄牌堆]) {
+        print("_______________")
+        牌堆名稱.forEach {
+            let 牌堆 = self[keyPath: $0]
+            print("\($0)[\(牌堆.count)]: \(牌堆.map(\.名稱).joined(separator: ", "))")
+        }
+    }
+    
+    func 建立牌組() -> [寶可夢卡] {
+        var cards = 寶可夢卡.博士與精靈球
+        cards.補雜牌()
+        return cards
+    }
+    
     func 重置() {
         抽牌堆 = 牌組
         
@@ -312,11 +326,7 @@ class 寶可夢玩家: 寶可夢玩家介面 {
     }
     
     func 抽牌堆丟雜牌(數量: Int) {
-        var 數量 = 數量
-        while 數量 > 0, let 雜牌 = 抽牌堆.抽({$0 == .雜牌}) {
-            棄牌堆 += [雜牌]
-            數量 -= 1
-        }
+        抽牌堆丟牌(數量: 數量, 條件: {$0 == .雜牌})
     }
     
     func 洗牌() {
