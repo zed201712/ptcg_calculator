@@ -2,7 +2,7 @@
 //  RedCardProbability.swift
 //  ptcg_calculator
 //
-//  Created by A on 2025/1/2.
+//  Created by Yuu on 2025/1/1.
 //
 
 import Foundation
