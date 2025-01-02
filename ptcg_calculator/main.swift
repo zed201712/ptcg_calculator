@@ -17,33 +17,9 @@ import Foundation
 main()
 
 func main() {
-    let model = HasKeyCard()
-    
-    func testResetCard(_ totalCount: Int) {
-        model.resetCard(totalCount, keyCardCount: 2)
-        assert(model.cards.filter({$0 == model.keyCard}).count == 2)
-        assert(model.cards.filter({$0 != model.keyCard}).count == totalCount - 2)
-    }
-    
-    func testShuffle() {
-        model.resetCard(5, keyCardCount: 2)
-        
-        let result = model.shuffleAndDraw(2) ? "hit" : "miss"
-        print("\(result), \(model.cards)")
-    }
-    
-    for i in 2 ... 10 {
-        testResetCard(i)
-    }
-    
-//    for _ in 1 ... 10 {
-//        testShuffle()
-//    }
-    print("testing end")
-    
-    let model2 = 模擬抽皮卡丘EX()
-    //let model2 = 模擬抽寶石海星()
-    model2.loopTest(10000)
+    let model = 模擬抽皮卡丘EX()
+    //let model = 模擬抽寶石海星()
+    model.loopTest(10000)
 }
 
 extension Double {

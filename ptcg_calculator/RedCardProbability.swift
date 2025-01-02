@@ -17,6 +17,32 @@ extension Double {
 }
 
 class HasKeyCard {
+    static func testing() {
+        let model = HasKeyCard()
+        
+        func testResetCard(_ totalCount: Int) {
+            model.resetCard(totalCount, keyCardCount: 2)
+            assert(model.cards.filter({$0 == model.keyCard}).count == 2)
+            assert(model.cards.filter({$0 != model.keyCard}).count == totalCount - 2)
+        }
+        
+        func testShuffle() {
+            model.resetCard(5, keyCardCount: 2)
+            
+            let result = model.shuffleAndDraw(2) ? "hit" : "miss"
+            print("\(result), \(model.cards)")
+        }
+        
+        for i in 2 ... 10 {
+            testResetCard(i)
+        }
+        
+    //    for _ in 1 ... 10 {
+    //        testShuffle()
+    //    }
+        print("testing end")
+    }
+    
     enum RedCardResult: String, CaseIterable, Hashable {
         case XX, XO, OX, OO
     }
