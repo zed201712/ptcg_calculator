@@ -184,8 +184,8 @@ class 模擬單回機率: 寶可夢TCG控制器 {
 }
 
 class 模擬抽寶石海星: 寶可夢TCG控制器 {
-    typealias 目前測試玩家 = 寶石海星玩家
-    let 遊戲: 寶可夢TCG = .init(所有玩家: [目前測試玩家()])
+    private typealias 目前測試玩家 = 寶石海星玩家
+    private let 遊戲: 寶可夢TCG = .init(所有玩家: [目前測試玩家()])
     private var 玩家: 目前測試玩家 {遊戲.所有玩家.first as! 目前測試玩家}
     
     private let 統計表 = 回合統計表()
@@ -210,19 +210,17 @@ class 模擬抽寶石海星: 寶可夢TCG控制器 {
         遊戲.開始()
     }
     
-    
-    func loop(_ times: Int) {
+    func loop(_ 測試次數: Int) {
         self.遊戲.控制器 = self
-        
         let 雜牌基礎寶可夢數量範圍 = 統計表.重置牌組計算範圍(玩家, 最低: 0)
         
         寶可夢出牌策略.測試所有順序(玩家) {
-            統計表.重置(times, 範圍: 雜牌基礎寶可夢數量範圍, 回合數上限: 遊戲.牌組數量上限)
+            統計表.重置(測試次數, 範圍: 雜牌基礎寶可夢數量範圍, 回合數上限: 遊戲.牌組數量上限)
             
             for 雜牌基礎寶可夢數量 in 雜牌基礎寶可夢數量範圍 {
                 統計表.設定(數量: 雜牌基礎寶可夢數量)
                 玩家.重置牌組(雜牌: 雜牌基礎寶可夢數量)
-                for _ in 0 ..< times {
+                for _ in 0 ..< 測試次數 {
                     測試()
                 }
             }
@@ -376,7 +374,7 @@ struct 寶可夢出牌策略: Hashable, Equatable {
             return
         }
         
-        let 所有順序 = AllCasesTester.permutations(of: 玩家出牌策略)
+        let 所有順序 = 玩家出牌策略.所有順序()
         for 出牌策略 in 所有順序 {
             玩家.出牌策略 = 出牌策略
             print(出牌策略.map({$0.卡.名稱}).joined(separator: " > "))
@@ -387,6 +385,12 @@ struct 寶可夢出牌策略: Hashable, Equatable {
         玩家.出牌策略 = 玩家出牌策略
     }
 }
+extension Array where Element == 寶可夢出牌策略 {
+    func 所有順序() -> [[寶可夢出牌策略]] {
+        return AllCasesTester.permutations(of: self)
+    }
+}
+
 enum 寶可夢卡類型: CaseIterable, Hashable, Equatable {
     case 基礎
     case 一階, 二階
@@ -412,8 +416,6 @@ struct 寶可夢卡: Hashable, Equatable {
     }
 }
 extension 寶可夢卡 {
-    static let 博士與精靈球: [寶可夢卡] = .init(同卡: .大木博士) + .init(同卡: .精靈球)
-    
     static let 雜牌基礎寶可夢: 寶可夢卡 = .init(
         名稱: "雜牌基礎寶可夢",
         類型: .基礎,
@@ -496,6 +498,8 @@ extension 寶可夢卡 {
     )
 }
 extension Array where Element == 寶可夢卡 {
+    static let 博士與精靈球: [寶可夢卡] = .init(同卡: .大木博士) + .init(同卡: .精靈球)
+    
     init(卡: 寶可夢卡, 數量: Int) {
         self = Array(repeating: 卡, count: 數量)
     }
@@ -514,6 +518,21 @@ extension Array where Element == 寶可夢卡 {
     
     func 有幾張(_ 條件: (寶可夢卡)->Bool) -> Int {
         self.filter(條件).count
+    }
+    
+    func 調整牌組(_ 卡: 寶可夢卡, 加入 數量: Int, 數量上限: Int) -> [寶可夢卡] {
+        var cards: [寶可夢卡] = self
+        
+        let maxCount = 數量上限 - cards.count
+        let 數量 = Swift.min(maxCount, 數量)
+        cards += .init(卡: 卡, 數量: 數量)
+        return cards
+    }
+    
+    func 調整雜牌(_ 雜牌基礎寶可夢數量: Int, 數量上限: Int) -> [寶可夢卡] {
+        var cards = 調整牌組(.雜牌基礎寶可夢, 加入: 雜牌基礎寶可夢數量, 數量上限: 數量上限)
+        cards.補雜牌(數量上限)
+        return cards
     }
     
     mutating func 補雜牌(_ 數量上限: Int) {
@@ -553,7 +572,7 @@ class 皮卡丘EX玩家: 寶可夢玩家 {
     override func 取得核心牌組() -> [寶可夢卡] {
         .init(同卡: .皮卡丘EX)
         + .init(卡: .雜牌基礎寶可夢, 數量: 2)
-        + 寶可夢卡.博士與精靈球
+        + .博士與精靈球
     }
 }
 
@@ -561,7 +580,7 @@ class 寶石海星玩家: 寶可夢玩家 {
     override func 取得核心牌組() -> [寶可夢卡] {
         .init(同卡: .寶石海星EX)
         + .init(同卡: .海星星)
-        + 寶可夢卡.博士與精靈球
+        + .博士與精靈球
     }
     
     func 是否已放置關鍵牌() -> Bool {
@@ -633,31 +652,16 @@ class 寶可夢玩家 {
     }
     
     func 取得核心牌組() -> [寶可夢卡] {
-        return .init(卡: .雜牌基礎寶可夢, 數量: 2) + 寶可夢卡.博士與精靈球
-    }
-    
-    func 調整牌組(_ 牌組: [寶可夢卡], 卡: 寶可夢卡, 加入 數量: Int) -> [寶可夢卡] {
-        var cards: [寶可夢卡] = 牌組
-        
-        let maxCount = 牌組數量上限 - cards.count
-        let 數量 = min(maxCount, 數量)
-        cards += .init(卡: 卡, 數量: 數量)
-        return cards
-    }
-    
-    func 調整雜牌(_ 牌組: [寶可夢卡], _ 雜牌基礎寶可夢數量: Int) -> [寶可夢卡] {
-        var cards = 調整牌組(牌組, 卡: .雜牌基礎寶可夢, 加入: 雜牌基礎寶可夢數量)
-        cards.補雜牌(牌組數量上限)
-        return cards
+        return .init(卡: .雜牌基礎寶可夢, 數量: 2) + .博士與精靈球
     }
     
     func 預設牌組() -> [寶可夢卡] {
-        調整雜牌(取得核心牌組(), 0)
+        取得核心牌組().調整雜牌(0, 數量上限: 牌組數量上限)
     }
     
     func 重置牌組(雜牌 雜牌基礎寶可夢數量: Int) {
         重置牌組(
-            調整雜牌(取得核心牌組(), 雜牌基礎寶可夢數量)
+            取得核心牌組().調整雜牌(雜牌基礎寶可夢數量, 數量上限: 牌組數量上限)
         )
     }
     
