@@ -17,8 +17,8 @@ import Foundation
 main()
 
 func main() {
-    let model = 模擬抽皮卡丘EX()
-    //let model = 模擬抽寶石海星()
+    //let model = 模擬抽皮卡丘EX()
+    let model = 模擬抽寶石海星()
     model.loopTest(10000)
 }
 
@@ -91,13 +91,10 @@ class 模擬抽寶石海星: 寶可夢TCG控制器 {
     
     private let 統計表 = 回合統計表()
     
-    func 回合結束(_ 玩家: 寶可夢玩家) {
-        self.玩家.回合結束放關鍵牌如果能()
-    }
+    func 回合結束(_ 玩家: 寶可夢玩家) {}
     
     func 是否遊戲結束() -> Bool {
-        let 進化寶石海星EX = 玩家.棄牌堆.有({$0 == .寶石海星EX})
-        return 進化寶石海星EX
+        return 玩家.是否已放置關鍵牌()
     }
     
     func 遊戲結束() {
@@ -245,6 +242,11 @@ class 寶可夢TCG {
         玩家行動 { 玩家 in
             玩家.遊戲 = self
         }
+    }
+    
+    func 目前為可進化回合() -> Bool {
+        //第1回合不可進化
+        目前回合 > 1
     }
     
     func 重新開始() {
@@ -469,12 +471,21 @@ class 皮卡丘EX玩家: 寶可夢玩家 {
 }
 
 class 寶石海星玩家: 寶可夢玩家 {
-    func 回合結束放關鍵牌如果能() {
+    override func 出牌() {
+        super.出牌()
+        出關鍵牌如果能()
+    }
+    
+    func 是否已放置關鍵牌() -> Bool {
+        let 進化寶石海星EX = 棄牌堆.有({$0 == .寶石海星EX})
+        return 進化寶石海星EX
+    }
+    
+    private func 出關鍵牌如果能() {
         let 上回合有放海星星 = 棄牌堆.有({$0 == .海星星})
         _ = 丟手牌(.海星星)
         
-        //第1回合不可進化
-        guard (遊戲?.目前回合 ?? 1) > 1 else { return }
+        guard 遊戲!.目前為可進化回合() else { return }
         
         guard 上回合有放海星星 else { return }
         _ = 丟手牌(.寶石海星EX)
@@ -596,12 +607,12 @@ class 寶可夢玩家 {
     
     func 新回合() {
         新回合抽卡()
-        執行目前所有出牌策略()
+        出牌()
         
         self.遊戲?.玩家回合結束(self)
     }
     
-    func 執行目前所有出牌策略() {
+    func 出牌() {
         出牌策略.forEach(執行出牌策略)
     }
     
