@@ -153,7 +153,7 @@ class 模擬單回機率: 寶可夢TCG控制器 {
     
     private func 測試() {
         遊戲.重置()
-        玩家.抽卡(數量: 抽牌數)
+        玩家.抽牌(數量: 抽牌數)
         //遊戲.準備()
         if 是否遊戲結束() {
             遊戲結束()
@@ -364,7 +364,7 @@ class 寶可夢TCG {
 }
 
 struct 寶可夢出牌策略: Hashable, Equatable {
-    let 卡: 寶可夢卡
+    let 卡: 寶可夢牌
     let 只出一張: Bool
     
     static func 測試所有順序(_ 玩家: 寶可夢玩家, callback: ()->Void) {
@@ -400,7 +400,7 @@ enum 寶可夢卡類型: CaseIterable, Hashable, Equatable {
 enum 寶可夢屬性: CaseIterable, Hashable, Equatable {
     case 草, 火, 水, 雷, 超, 鬥, 惡, 鋼, 龍, 無
 }
-struct 寶可夢卡: Hashable, Equatable {
+struct 寶可夢牌: Hashable, Equatable {
     let 名稱: String
     let 類型: 寶可夢卡類型
     let 屬性: 寶可夢屬性?
@@ -415,96 +415,96 @@ struct 寶可夢卡: Hashable, Equatable {
         self == .雜牌 || self == .雜牌基礎寶可夢
     }
 }
-extension 寶可夢卡 {
-    static let 雜牌基礎寶可夢: 寶可夢卡 = .init(
+extension 寶可夢牌 {
+    static let 雜牌基礎寶可夢: 寶可夢牌 = .init(
         名稱: "雜牌基礎寶可夢",
         類型: .基礎,
         屬性: nil
     )
-    static let 雜牌1階寶可夢: 寶可夢卡 = .init(
+    static let 雜牌1階寶可夢: 寶可夢牌 = .init(
         名稱: "雜牌基礎寶可夢",
         類型: .一階,
         屬性: nil
     )
-    static let 雜牌超基礎寶可夢: 寶可夢卡 = .init(
+    static let 雜牌超基礎寶可夢: 寶可夢牌 = .init(
         名稱: "雜牌超基礎寶可夢",
         類型: .基礎,
         屬性: .超
     )
-    static let 雜牌超1寶可夢: 寶可夢卡 = .init(
+    static let 雜牌超1寶可夢: 寶可夢牌 = .init(
         名稱: "雜牌超1寶可夢",
         類型: .一階,
         屬性: .超
     )
-    static let 拉魯拉絲: 寶可夢卡 = .init(
+    static let 拉魯拉絲: 寶可夢牌 = .init(
         名稱: "拉魯拉絲",//Ralts
         類型: .基礎,
         屬性: .超
     )
-    static let 奇魯莉安: 寶可夢卡 = .init(
+    static let 奇魯莉安: 寶可夢牌 = .init(
         名稱: "奇魯莉安",//Kirlia
         類型: .一階,
         屬性: .超
     )
-    static let 沙奈朵: 寶可夢卡 = .init(
+    static let 沙奈朵: 寶可夢牌 = .init(
         名稱: "沙奈朵",//Gardevoir
         類型: .二階,
         屬性: .超
     )
-    static let 超夢EX: 寶可夢卡 = .init(
+    static let 超夢EX: 寶可夢牌 = .init(
         名稱: "超夢EX",
         類型: .基礎,
         屬性: .超
     )
-    static let 皮卡丘EX: 寶可夢卡 = .init(
+    static let 皮卡丘EX: 寶可夢牌 = .init(
         名稱: "皮卡丘EX",
         類型: .基礎,
         屬性: .雷
     )
-    static let 海星星: 寶可夢卡 = .init(
+    static let 海星星: 寶可夢牌 = .init(
         名稱: "海星星",
         類型: .基礎,
         屬性: .水
     )
-    static let 寶石海星EX: 寶可夢卡 = .init(
+    static let 寶石海星EX: 寶可夢牌 = .init(
         名稱: "寶石海星EX",
         類型: .一階,
         屬性: .水
     )
-    static let 噴火龍EX: 寶可夢卡 = .init(
+    static let 噴火龍EX: 寶可夢牌 = .init(
         名稱: "噴火龍EX",
         類型: .二階,
         屬性: .火
     )
-    static let 雜牌: 寶可夢卡 = .init(
+    static let 雜牌: 寶可夢牌 = .init(
         名稱: "雜牌",
         類型: .物品,
         屬性: nil
     )
-    static let 精靈球: 寶可夢卡 = .init(
+    static let 精靈球: 寶可夢牌 = .init(
         名稱: "精靈球",
         類型: .物品,
         屬性: nil
     )
-    static let 幻之石板: 寶可夢卡 = .init(
+    static let 幻之石板: 寶可夢牌 = .init(
         名稱: "幻之石板",
         類型: .物品,
         屬性: nil
     )
-    static let 大木博士: 寶可夢卡 = .init(
+    static let 大木博士: 寶可夢牌 = .init(
         名稱: "大木博士",
         類型: .支援者,
         屬性: nil
     )
 }
-extension Array where Element == 寶可夢卡 {
-    static let 博士與精靈球: [寶可夢卡] = .init(同卡: .大木博士) + .init(同卡: .精靈球)
+extension Array where Element == 寶可夢牌 {
+    static let 博士與精靈球: [寶可夢牌] = .init(同卡: .大木博士) + .init(同卡: .精靈球)
     
-    init(卡: 寶可夢卡, 數量: Int) {
+    init(卡: 寶可夢牌, 數量: Int) {
         self = Array(repeating: 卡, count: 數量)
     }
     
-    init(同卡: 寶可夢卡, 同卡上限: Int = 寶可夢TCG.預設同卡上限) {
+    init(同卡: 寶可夢牌, 同卡上限: Int = 寶可夢TCG.預設同卡上限) {
         self = .init(卡: 同卡, 數量: 同卡上限)
     }
     
@@ -512,16 +512,16 @@ extension Array where Element == 寶可夢卡 {
         self = .init(卡: .雜牌, 數量: 雜牌數) + .init(卡: .雜牌基礎寶可夢, 數量: 雜牌基礎寶可夢數)
     }
     
-    func 有(_ 條件: (寶可夢卡)->Bool) -> Bool {
+    func 有(_ 條件: (寶可夢牌)->Bool) -> Bool {
         self.first(where: 條件) != nil
     }
     
-    func 有幾張(_ 條件: (寶可夢卡)->Bool) -> Int {
+    func 有幾張(_ 條件: (寶可夢牌)->Bool) -> Int {
         self.filter(條件).count
     }
     
-    func 調整牌組(_ 卡: 寶可夢卡, 加入 數量: Int, 數量上限: Int) -> [寶可夢卡] {
-        var cards: [寶可夢卡] = self
+    func 調整牌組(_ 卡: 寶可夢牌, 加入 數量: Int, 數量上限: Int) -> [寶可夢牌] {
+        var cards: [寶可夢牌] = self
         
         let maxCount = 數量上限 - cards.count
         let 數量 = Swift.min(maxCount, 數量)
@@ -529,7 +529,7 @@ extension Array where Element == 寶可夢卡 {
         return cards
     }
     
-    func 調整雜牌(_ 雜牌基礎寶可夢數量: Int, 數量上限: Int) -> [寶可夢卡] {
+    func 調整雜牌(_ 雜牌基礎寶可夢數量: Int, 數量上限: Int) -> [寶可夢牌] {
         var cards = 調整牌組(.雜牌基礎寶可夢, 加入: 雜牌基礎寶可夢數量, 數量上限: 數量上限)
         cards.補雜牌(數量上限)
         return cards
@@ -539,16 +539,16 @@ extension Array where Element == 寶可夢卡 {
         let 雜牌數 = 數量上限 - count
         guard 雜牌數 > 0 else { return }
         
-        append(contentsOf: Array<寶可夢卡>(卡: .雜牌, 數量: 雜牌數))
+        append(contentsOf: Array<寶可夢牌>(卡: .雜牌, 數量: 雜牌數))
     }
     
-    mutating func 抽(_ 條件: (寶可夢卡)->Bool) -> 寶可夢卡? {
+    mutating func 抽(_ 條件: (寶可夢牌)->Bool) -> 寶可夢牌? {
         guard let index = self.firstIndex(where: 條件) else { return nil }
         defer { self.remove(at: index) }
         return self[index]
     }
     
-    mutating func 抽(數量: Int) -> [寶可夢卡] {
+    mutating func 抽(數量: Int) -> [寶可夢牌] {
         let 被抽走的牌 = self.prefix(數量)
         let 被抽走數量 = 被抽走的牌.count
         self = self.suffix(count - 被抽走數量)
@@ -569,7 +569,7 @@ class 陪練玩家: 寶可夢玩家 {
 }
 
 class 皮卡丘EX玩家: 寶可夢玩家 {
-    override func 取得核心牌組() -> [寶可夢卡] {
+    override func 取得核心牌組() -> [寶可夢牌] {
         .init(同卡: .皮卡丘EX)
         + .init(卡: .雜牌基礎寶可夢, 數量: 2)
         + .博士與精靈球
@@ -577,7 +577,7 @@ class 皮卡丘EX玩家: 寶可夢玩家 {
 }
 
 class 寶石海星玩家: 寶可夢玩家 {
-    override func 取得核心牌組() -> [寶可夢卡] {
+    override func 取得核心牌組() -> [寶可夢牌] {
         .init(同卡: .寶石海星EX)
         + .init(同卡: .海星星)
         + .博士與精靈球
@@ -597,18 +597,18 @@ class 寶石海星玩家: 寶可夢玩家 {
         debug_msg(self, 1, "\(#function)")
         
         let 上回合有放海星星 = 棄牌堆.有({$0 == .海星星})
-        _ = 丟手牌(.海星星)
+        _ = 棄牌(.海星星)
         
         guard 遊戲!.目前為可進化回合() else { return }
         
         guard 上回合有放海星星 else { return }
-        _ = 丟手牌(.寶石海星EX)
+        _ = 棄牌(.寶石海星EX)
     }
 }
 
 class 噴火龍玩家: 寶可夢玩家 {
-    override func 取得核心牌組() -> [寶可夢卡] {
-        var cards: [寶可夢卡] = .init(同卡: .噴火龍EX)
+    override func 取得核心牌組() -> [寶可夢牌] {
+        var cards: [寶可夢牌] = .init(同卡: .噴火龍EX)
 //        + 寶可夢TCG卡.博士與精靈球
 //        + .init(同卡: .雜牌基礎寶可夢)//火焰鳥
         + .init(同卡: .雜牌基礎寶可夢)//小火龍
@@ -628,13 +628,15 @@ class 寶可夢玩家 {
         .init(卡: .大木博士, 只出一張: true),
     ]
     
-    private lazy var 牌組: [寶可夢卡] = 預設牌組()
+    private var 當前回合未使用支援者: Bool = true
     
-    private(set) var 手牌: [寶可夢卡] = []
-    private(set) var 抽牌堆: [寶可夢卡] = []
-    private(set) var 棄牌堆: [寶可夢卡] = []
+    private lazy var 牌組: [寶可夢牌] = 預設牌組()
     
-    func 顯示牌堆資訊(_ 牌堆名稱: [KeyPath<寶可夢玩家, [寶可夢卡]>] = [\.手牌, \.抽牌堆, \.棄牌堆]) {
+    private(set) var 手牌: [寶可夢牌] = []
+    private(set) var 抽牌堆: [寶可夢牌] = []
+    private(set) var 棄牌堆: [寶可夢牌] = []
+    
+    func 顯示牌堆資訊(_ 牌堆名稱: [KeyPath<寶可夢玩家, [寶可夢牌]>] = [\.手牌, \.抽牌堆, \.棄牌堆]) {
         print("_______________")
         牌堆名稱.forEach {
             let 牌堆 = self[keyPath: $0]
@@ -643,7 +645,7 @@ class 寶可夢玩家 {
         }
     }
     
-    func 牌堆數量資訊(_ 牌堆名稱: [KeyPath<寶可夢玩家, [寶可夢卡]>] = [\.手牌, \.抽牌堆, \.棄牌堆]) -> String {
+    func 牌堆數量資訊(_ 牌堆名稱: [KeyPath<寶可夢玩家, [寶可夢牌]>] = [\.手牌, \.抽牌堆, \.棄牌堆]) -> String {
         牌堆名稱.map({
             let 牌堆 = self[keyPath: $0]
             let name = "\($0)".components(separatedBy: ".").last!
@@ -651,11 +653,11 @@ class 寶可夢玩家 {
         }).joined(separator: ", ")
     }
     
-    func 取得核心牌組() -> [寶可夢卡] {
+    func 取得核心牌組() -> [寶可夢牌] {
         return .init(卡: .雜牌基礎寶可夢, 數量: 2) + .博士與精靈球
     }
     
-    func 預設牌組() -> [寶可夢卡] {
+    func 預設牌組() -> [寶可夢牌] {
         取得核心牌組().調整雜牌(0, 數量上限: 牌組數量上限)
     }
     
@@ -665,7 +667,7 @@ class 寶可夢玩家 {
         )
     }
     
-    func 重置牌組(_ 牌組: [寶可夢卡]) {
+    func 重置牌組(_ 牌組: [寶可夢牌]) {
         self.牌組 = 牌組
     }
     
@@ -694,16 +696,16 @@ class 寶可夢玩家 {
         洗牌()
         
         手牌 += [基礎寶可夢]
-        抽卡(數量: 4)
+        抽牌(數量: 4)
     }
     
-    private func 新回合抽卡() {
+    private func 新回合抽牌() {
         debug_msg(self, 2, "\(#function)")
         
-        抽卡(數量: 1)
+        抽牌(數量: 1)
     }
     
-    func 抽卡(數量: Int) {
+    func 抽牌(數量: Int) {
         debug_msg(self, 2, "\(#function)", "\(數量)")
         
         手牌 += 抽牌堆.抽(數量: 數量)
@@ -713,8 +715,10 @@ class 寶可夢玩家 {
         debug_msg(self, 1, "_______________")
         debug_msg(self, 1, "\(#function), \(遊戲!.目前回合)")
         
-        新回合抽卡()
-        debug_msg(self, 1, "新回合抽卡後", 牌堆數量資訊())
+        當前回合未使用支援者 = true
+        
+        新回合抽牌()
+        debug_msg(self, 1, "新回合抽牌後", 牌堆數量資訊())
         出牌()
         debug_msg(self, 1, "出牌後", 牌堆數量資訊())
         
@@ -766,7 +770,7 @@ class 寶可夢玩家 {
     }
     
     private func 用精靈球如果有() -> Bool {
-        guard 丟手牌(.精靈球) else { return false }
+        guard 棄牌(.精靈球) else { return false }
         
         guard let 基礎寶可夢 = 抽牌堆.抽({
             $0.是基礎寶可夢()
@@ -778,13 +782,19 @@ class 寶可夢玩家 {
     }
     
     private func 用大木博士如果有() -> Bool {
-        guard 丟手牌(.大木博士) else { return false }
+        guard 當前回合未使用支援者 else { return false }
+        guard 棄牌(.大木博士) else { return false }
         
-        抽卡(數量: 2)
+        當前回合未使用支援者 = false
+        抽牌(數量: 2)
         return true
     }
     
-    func 丟手牌(_ 卡: 寶可夢卡) -> Bool {
+    func 棄牌(數量: Int) {
+        棄牌堆 += 手牌.抽(數量: 數量)
+    }
+    
+    func 棄牌(_ 卡: 寶可夢牌) -> Bool {
         //debug_msg(self, 2, "\(#function), \(卡.名稱)")
         
         guard let 手牌的卡 = 手牌.抽({$0 == 卡}) else { return false }
