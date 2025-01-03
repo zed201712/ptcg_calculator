@@ -15,7 +15,7 @@ import Foundation
 //紅卡
 
 let debug_flags = Array<Bool>.init(repeating: false, count: 10)
-//let debug_flags = [true, true, false]
+//let debug_flags = [true, true, true]
 func debug_msg(_ 玩家: 寶可夢玩家, _ flagIndex: Int, _ array: String...) {
     guard debug_flags[flagIndex] else { return }
     print("\(玩家.先手玩家 ? "先手" : "後手") : " + array.joined(separator: ", "))
@@ -31,9 +31,11 @@ func main() {
     //let simpleModel = 模擬單回機率(); simpleModel.loop(300_000, 抽牌數: 6, 牌組數量上限: 19)
     
     //let model = 模擬抽皮卡丘EX()
-    let model = 模擬抽寶石海星()
-    model.loop(10_000)
+//    let model = 模擬抽寶石海星()
+//    model.loop(10_000)
     //model.loop(1)
+    
+    實體測試者.執行所有測試()
 }
 main()
 
@@ -364,7 +366,7 @@ class 寶可夢TCG {
 }
 
 struct 寶可夢出牌策略: Hashable, Equatable {
-    let 卡: 寶可夢牌
+    let 牌: 寶可夢牌
     let 只出一張: Bool
     
     static func 測試所有順序(_ 玩家: 寶可夢玩家, callback: ()->Void) {
@@ -377,7 +379,7 @@ struct 寶可夢出牌策略: Hashable, Equatable {
         let 所有順序 = 玩家出牌策略.所有順序()
         for 出牌策略 in 所有順序 {
             玩家.出牌策略 = 出牌策略
-            print(出牌策略.map({$0.卡.名稱}).joined(separator: " > "))
+            print(出牌策略.map({$0.牌.名稱}).joined(separator: " > "))
             
             callback()
         }
@@ -500,16 +502,16 @@ extension 寶可夢牌 {
 extension Array where Element == 寶可夢牌 {
     static let 博士與精靈球: [寶可夢牌] = .init(同卡: .大木博士) + .init(同卡: .精靈球)
     
-    init(卡: 寶可夢牌, 數量: Int) {
-        self = Array(repeating: 卡, count: 數量)
+    init(牌: 寶可夢牌, 數量: Int) {
+        self = Array(repeating: 牌, count: 數量)
     }
     
     init(同卡: 寶可夢牌, 同卡上限: Int = 寶可夢TCG.預設同卡上限) {
-        self = .init(卡: 同卡, 數量: 同卡上限)
+        self = .init(牌: 同卡, 數量: 同卡上限)
     }
     
     init(雜牌數: Int, 雜牌基礎寶可夢數: Int) {
-        self = .init(卡: .雜牌, 數量: 雜牌數) + .init(卡: .雜牌基礎寶可夢, 數量: 雜牌基礎寶可夢數)
+        self = .init(牌: .雜牌, 數量: 雜牌數) + .init(牌: .雜牌基礎寶可夢, 數量: 雜牌基礎寶可夢數)
     }
     
     func 有(_ 條件: (寶可夢牌)->Bool) -> Bool {
@@ -525,7 +527,7 @@ extension Array where Element == 寶可夢牌 {
         
         let maxCount = 數量上限 - cards.count
         let 數量 = Swift.min(maxCount, 數量)
-        cards += .init(卡: 卡, 數量: 數量)
+        cards += .init(牌: 卡, 數量: 數量)
         return cards
     }
     
@@ -539,7 +541,7 @@ extension Array where Element == 寶可夢牌 {
         let 雜牌數 = 數量上限 - count
         guard 雜牌數 > 0 else { return }
         
-        append(contentsOf: Array<寶可夢牌>(卡: .雜牌, 數量: 雜牌數))
+        append(contentsOf: Array<寶可夢牌>(牌: .雜牌, 數量: 雜牌數))
     }
     
     mutating func 抽(_ 條件: (寶可夢牌)->Bool) -> 寶可夢牌? {
@@ -571,7 +573,7 @@ class 陪練玩家: 寶可夢玩家 {
 class 皮卡丘EX玩家: 寶可夢玩家 {
     override func 取得核心牌組() -> [寶可夢牌] {
         .init(同卡: .皮卡丘EX)
-        + .init(卡: .雜牌基礎寶可夢, 數量: 2)
+        + .init(牌: .雜牌基礎寶可夢, 數量: 2)
         + .博士與精靈球
     }
 }
@@ -624,8 +626,8 @@ class 寶可夢玩家 {
     var 同卡上限: Int {遊戲?.同卡上限 ?? 寶可夢TCG.預設同卡上限}
     
     var 出牌策略: [寶可夢出牌策略] = [
-        .init(卡: .精靈球, 只出一張: false),
-        .init(卡: .大木博士, 只出一張: true),
+        .init(牌: .精靈球, 只出一張: false),
+        .init(牌: .大木博士, 只出一張: true),
     ]
     
     private var 當前回合未使用支援者: Bool = true
@@ -654,11 +656,15 @@ class 寶可夢玩家 {
     }
     
     func 取得核心牌組() -> [寶可夢牌] {
-        return .init(卡: .雜牌基礎寶可夢, 數量: 2) + .博士與精靈球
+        return .init(牌: .雜牌基礎寶可夢, 數量: 2) + .博士與精靈球
     }
     
     func 預設牌組() -> [寶可夢牌] {
         取得核心牌組().調整雜牌(0, 數量上限: 牌組數量上限)
+    }
+    
+    func 測試用重置抽牌堆(_ 牌組: [寶可夢牌]) {
+        抽牌堆 = 牌組
     }
     
     func 重置牌組(雜牌 雜牌基礎寶可夢數量: Int) {
@@ -739,18 +745,18 @@ class 寶可夢玩家 {
     }
     
     private func 執行出牌策略(_ 策略: 寶可夢出牌策略) -> Bool {
-        debug_msg(self, 2, "\(#function), \(策略.卡.名稱)")
+        debug_msg(self, 2, "\(#function), \(策略.牌.名稱)")
         
         let 執行策略: () -> Bool
         
-        if 策略.卡 == .精靈球 {
+        if 策略.牌 == .精靈球 {
             執行策略 = 用精靈球如果有
         }
-        else if 策略.卡 == .大木博士 {
+        else if 策略.牌 == .大木博士 {
             執行策略 = 用大木博士如果有
         }
         else {
-            fatalError("未實現 \(策略.卡.名稱) 使用方式")
+            fatalError("未實現 \(策略.牌.名稱) 使用方式")
         }
         
         if 策略.只出一張 {
