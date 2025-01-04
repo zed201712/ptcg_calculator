@@ -14,10 +14,10 @@ import Foundation
 //幻之石板
 //紅卡
 
-let debug_flags = Array<Bool>.init(repeating: false, count: 10)
-//let debug_flags = [true, true, true]
+let debug_flags = Array(repeating: true, count: 1)
+//let debug_flags = [false, true, true]
 func debug_msg(_ 玩家: 寶可夢玩家, _ flagIndex: Int, _ array: String...) {
-    guard debug_flags[flagIndex] else { return }
+    guard debug_flags[safe: flagIndex] == true else { return }
     print("\(玩家.先手玩家 ? "先手" : "後手") : " + array.joined(separator: ", "))
 }
 
@@ -590,8 +590,8 @@ class 寶石海星玩家: 寶可夢玩家 {
         return 進化寶石海星EX
     }
     
-    override func 出牌() {
-        super.出牌()
+    override func 出牌階段() {
+        super.出牌階段()
         出關鍵牌如果能()
     }
     
@@ -610,7 +610,7 @@ class 寶石海星玩家: 寶可夢玩家 {
 
 class 噴火龍玩家: 寶可夢玩家 {
     override func 取得核心牌組() -> [寶可夢牌] {
-        var cards: [寶可夢牌] = .init(同卡: .噴火龍EX)
+        let cards: [寶可夢牌] = .init(同卡: .噴火龍EX)
 //        + 寶可夢TCG卡.博士與精靈球
 //        + .init(同卡: .雜牌基礎寶可夢)//火焰鳥
         + .init(同卡: .雜牌基礎寶可夢)//小火龍
@@ -640,11 +640,15 @@ class 寶可夢玩家 {
     
     func 顯示牌堆資訊(_ 牌堆名稱: [KeyPath<寶可夢玩家, [寶可夢牌]>] = [\.手牌, \.抽牌堆, \.棄牌堆]) {
         print("_______________")
-        牌堆名稱.forEach {
+        print(牌堆資訊(牌堆名稱))
+    }
+    
+    func 牌堆資訊(_ 牌堆名稱: [KeyPath<寶可夢玩家, [寶可夢牌]>] = [\.手牌, \.抽牌堆, \.棄牌堆]) -> String {
+        牌堆名稱.map({
             let 牌堆 = self[keyPath: $0]
             let name = "\($0)".components(separatedBy: ".").last!
-            print("\(name)[\(牌堆.count)]: \(牌堆.map(\.名稱).joined(separator: ", "))")
-        }
+            return "\(name)[\(牌堆.count)]: \(牌堆.map(\.名稱).joined(separator: ", "))"
+        }).joined(separator: ", ")
     }
     
     func 牌堆數量資訊(_ 牌堆名稱: [KeyPath<寶可夢玩家, [寶可夢牌]>] = [\.手牌, \.抽牌堆, \.棄牌堆]) -> String {
@@ -725,13 +729,13 @@ class 寶可夢玩家 {
         
         新回合抽牌()
         debug_msg(self, 1, "新回合抽牌後", 牌堆數量資訊())
-        出牌()
+        出牌階段()
         debug_msg(self, 1, "出牌後", 牌堆數量資訊())
         
         self.遊戲?.玩家回合結束(self)
     }
     
-    func 出牌() {
+    func 出牌階段() {
         debug_msg(self, 1, "\(#function)")
         
         var result: Bool = true
@@ -744,7 +748,7 @@ class 寶可夢玩家 {
         }
     }
     
-    private func 執行出牌策略(_ 策略: 寶可夢出牌策略) -> Bool {
+    func 執行出牌策略(_ 策略: 寶可夢出牌策略) -> Bool {
         debug_msg(self, 2, "\(#function), \(策略.牌.名稱)")
         
         let 執行策略: () -> Bool
@@ -800,13 +804,13 @@ class 寶可夢玩家 {
         棄牌堆 += 手牌.抽(數量: 數量)
     }
     
-    func 棄牌(_ 卡: 寶可夢牌) -> Bool {
-        //debug_msg(self, 2, "\(#function), \(卡.名稱)")
+    func 棄牌(_ 牌: 寶可夢牌) -> Bool {
+        //debug_msg(self, 2, "\(#function), \(牌.名稱)")
         
-        guard let 手牌的卡 = 手牌.抽({$0 == 卡}) else { return false }
-        debug_msg(self, 1, "\(#function) 成功, \(卡.名稱)")
+        guard let 手牌的牌 = 手牌.抽({$0 == 牌}) else { return false }
+        debug_msg(self, 1, "\(#function) 成功, \(牌.名稱)")
         
-        棄牌堆 += [手牌的卡]
+        棄牌堆 += [手牌的牌]
         return true
     }
 }
