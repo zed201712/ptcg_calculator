@@ -202,3 +202,49 @@ extension Collection where Indices.Iterator.Element == Index {
         return indices.contains(index) ? self[index] : nil
     }
 }
+
+extension Array where Element: Hashable {
+    func removeDuplicates() -> [Element] {
+        var seen = Set<Element>()
+        return self.filter({ element in
+            if seen.contains(element) {
+                return false
+            } else {
+                seen.insert(element)
+                return true
+            }
+        })
+    }
+    
+    static func testRemoveDuplicates() {
+        // 測試用例 1：一般情況
+        let input1 = ["A", "B", "B", "C"]
+        let expected1 = ["A", "B", "C"]
+        assert(input1.removeDuplicates() == expected1)
+        
+        // 測試用例 2：全部元素相同
+        let input2 = ["A", "A", "A", "A"]
+        let expected2 = ["A"]
+        assert(input2.removeDuplicates() == expected2)
+        
+        // 測試用例 3：無重複元素
+        let input3 = ["A", "B", "C"]
+        let expected3 = ["A", "B", "C"]
+        assert(input3.removeDuplicates() == expected3)
+        
+        // 測試用例 4：空陣列
+        let input4: [String] = []
+        let expected4: [String] = []
+        assert(input4.removeDuplicates() == expected4)
+        
+        // 測試用例 5：含有空字串
+        let input5 = ["", "A", "", "B"]
+        let expected5 = ["", "A", "B"]
+        assert(input5.removeDuplicates() == expected5)
+        
+        // 測試用例 6：不同大小寫應視為不同元素
+        let input6 = ["a", "A", "a", "A"]
+        let expected6 = ["a", "A"]
+        assert(input6.removeDuplicates() == expected6)
+    }
+}

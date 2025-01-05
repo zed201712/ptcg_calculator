@@ -132,6 +132,31 @@ class MathCombination {
         return 1.0 - (Double(noKeyCardCombinations) / Double(totalCombinations))
     }
     
+    func drawKeyCardAllHit(_ total: Int, keyCardCount: Int, drawCardCount: Int) -> Double {
+        let totalCombinations = combination(total, drawCardCount)
+        
+        let nonJokerCombinations = combination(total - keyCardCount, drawCardCount - keyCardCount)
+        
+        let favorableCombinations = nonJokerCombinations
+        
+        return Double(favorableCombinations) / Double(totalCombinations)
+    }
+    
+    func drawKeyCardAndRequiredCard(_ total: Int, keyCardCount: Int, other requiredCardCount: Int, drawCardCount: Int) -> Double {
+        let otherDrawn = 1
+        
+        let otherCards = total - keyCardCount - requiredCardCount
+        let totalCombinations = combination(total, drawCardCount)
+        let jokerCombinations = 1
+        
+        let lessThanCombinations = combination(requiredCardCount, 1)
+        
+        let otherCombinations = combination(otherCards, otherDrawn)
+        
+        // 計算機率
+        return Double(jokerCombinations * lessThanCombinations * otherCombinations) / Double(totalCombinations)
+    }
+    
     func combination(_ n: Int, _ k: Int) -> Int {
         if k > n {
             return 0
