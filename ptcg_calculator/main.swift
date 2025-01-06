@@ -33,16 +33,16 @@ func main() {
     //皮卡丘 2基礎
     let result19_3 = MathCombination().drawKeyCardAllHit(19, keyCardCount: 3, drawCardCount: 4)
     print("基礎牌[2], 回合0: " + (result19_3 * 100).toDotString(3))
-    let result20_3 = MathCombination().drawKeyCardAllHit(20, keyCardCount: 3, drawCardCount: 4)
+    let result20_3 = MathCombination().drawKeyCardAllHit(19, keyCardCount: 3, drawCardCount: 5)
     print("基礎牌[2], 回合0: " + (result20_3 * 100).toDotString(3))
     let result2 = MathCombination().drawKeyCardAndRequiredCard(19, keyCardCount: 1, other: 2, drawCardCount: 4)
     print("基礎牌[2], 回合0: " + (result2 * 100).toDotString(3))
     
-    let simpleModel = 模擬單次抽牌(); simpleModel.loop(3000_000, 抽牌數: 6, 牌組數量上限: 19, 關鍵牌數: 2) {$0 >= 1}
+    //let simpleModel = 模擬單次抽牌(); simpleModel.loop(1000_000, 抽牌數: 4, 牌組數量上限: 19, 關鍵牌數: 3) {$0 >= 3}
     
-    //let model = 模擬抽皮卡丘EX()
-//    let model = 模擬抽寶石海星()
-    //model.loop(10_000)
+    let model = 模擬抽皮卡丘EX()
+    //let model = 模擬抽寶石海星()
+    model.loop(10_000)
     //model.loop(1)
     
     //實體測試者.執行所有測試()
@@ -318,7 +318,7 @@ class 模擬抽皮卡丘EX: 寶可夢TCG控制器 {
     }
     
     func loop(_ 測試次數: Int) {
-        let 雜牌基礎寶可夢數量範圍 = 統計表.重置牌組計算範圍(玩家, 最低: 2)
+        let 雜牌基礎寶可夢數量範圍 = 統計表.重置牌組計算範圍(玩家, 最低: 0)
         
         let 所有出牌順序 = 玩家.出牌策略.所有順序()
         
