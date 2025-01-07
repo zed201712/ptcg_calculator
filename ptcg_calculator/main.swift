@@ -15,6 +15,7 @@ import Foundation
 //紅卡
 
 let debug_flags = Array(repeating: true, count: 1)
+//let debug_flags = [false, true, false, true]
 //let debug_flags = [false, true, true]
 func debug_msg(_ 玩家: 寶可夢玩家, _ flagIndex: Int, _ array: String...) {
     guard debug_flags[safe: flagIndex] == true else { return }
@@ -950,9 +951,9 @@ class 寶可夢玩家 {
         //debug_msg(self, 2, "\(#function), \(牌.名稱)")
         
         guard let 手牌的牌 = 手牌.抽({$0 == 牌}) else { return false }
-        debug_msg(self, 1, "\(#function) 成功, \(牌.名稱)")
-        
         棄牌堆 += [手牌的牌]
+        
+        debug_msg(self, 1, "\(#function) 成功, \(牌.名稱)")
         return true
     }
 }
