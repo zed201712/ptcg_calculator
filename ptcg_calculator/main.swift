@@ -633,6 +633,11 @@ extension 寶可夢牌 {
         類型: .支援者,
         屬性: nil
     )
+    static let 紅卡: 寶可夢牌 = .init(
+        名稱: "紅卡",
+        類型: .物品,
+        屬性: nil
+    )
 }
 extension Array where Element == 寶可夢牌 {
     static let 博士與精靈球: [寶可夢牌] = .init(同卡: .大木博士) + .init(同卡: .精靈球)
@@ -897,6 +902,21 @@ class 寶可夢玩家 {
         else {
             return 盡可能(執行策略)
         }
+    }
+    
+    func 已放置關鍵卡() -> Bool {
+        //return 棄牌堆.有({$0 == .拉魯拉絲})
+        return false
+    }
+    
+    func 觸發紅卡效果() {
+        抽牌堆 += 手牌
+        手牌.removeAll()
+        
+        洗牌()
+        抽牌(數量: 3)
+        
+        debug_msg(self, 1, "\(#function)了")
     }
     
     private func 盡可能(_ 用卡: ()->Bool) -> Bool {
