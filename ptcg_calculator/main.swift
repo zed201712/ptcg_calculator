@@ -19,16 +19,26 @@ let debug_flags = Array(repeating: true, count: 1)
 func debug_msg(_ 玩家: 寶可夢玩家, _ flagIndex: Int, _ array: String...) {
     guard debug_flags[safe: flagIndex] == true else { return }
     print("\(玩家.先手玩家 ? "先手" : "後手") : " + array.joined(separator: ", "))
+    
+    if //玩家.先手玩家,
+       debug_flags[safe: 3] == true
+    {
+        print("\(玩家.先手玩家 ? "先手" : "後手") : " + 玩家.牌堆資訊())
+    }
 }
 
 func main() {
-    let model = 模擬抽皮卡丘EX()
+    let startTime = Date()
+    
+    //let model = 模擬抽皮卡丘EX()
     //let model = 模擬抽寶石海星()
     //let model = 模擬抽沙奈朵()
-    model.loop(300_000)
+    //model.loop(30_000)
     //model.loop(1)
     
-    //實體測試者.執行所有測試()
+    實體測試者.執行所有測試()
+    let endTime = Date(); let costTime = Int(endTime.timeIntervalSince(startTime).rounded())
+    print("花費時間: \(costTime) 秒")
 }
 main()
 
