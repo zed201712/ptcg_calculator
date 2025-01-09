@@ -123,6 +123,44 @@ class HasKeyCard {
         let total = cards.count
         return MathCombination().drawKeyCard(total, keyCardCount: keyCardCount, drawCardCount: drawCardCount)
     }
+    
+    func testShuffle(_ shuffleFlag: Bool) -> String {
+        var sum = 0
+        let target = 1
+        
+        let array = Array(1 ... 11)
+        for _ in 0 ..< 1_000_000 {
+            var array = array
+            array.shuffle()
+            let removeIndex = array.firstIndex(where: {$0 != target})!
+            array.remove(at: removeIndex)
+            if shuffleFlag { array.shuffle() }
+            
+            if array.first == target {
+                sum += 1
+            }
+        }
+        
+        return String(format: "%.3f", (Double(sum) / 1_000_000))
+    }
+
+    func testBall(_ number: Int, total: Int) {
+        let myMath = MathCombination()
+        
+        let result = myMath.drawKeyCard(total, keyCardCount: 1, drawCardCount: number) * 100
+        let lastResult = myMath.drawKeyCard(total - 1, keyCardCount: 1, drawCardCount: number) * 100
+        print("\(number) / \(total - 1) - \(number) / \(total) = \(lastResult.toDotString(1)) - \(result.toDotString(1)) = \((result - lastResult).toDotString(1)) %")
+    }
+    
+    //testBallLoop(8)
+    func testBallLoop(_ number: Int) {
+        let number = max(2, number)
+        for t in 1 ... 2 {
+            for i in 2 ... number {
+                testBall(i, total: t * 10)
+            }
+        }
+    }
 }
 
 class MathCombination {
