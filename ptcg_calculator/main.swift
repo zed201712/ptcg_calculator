@@ -233,7 +233,6 @@ class 模擬用紅卡: 寶可夢TCG控制器 {
     var 紅卡玩家出牌策略: [寶可夢出牌策略] {[
         .init(牌: .大木博士, 只出一張: true),
         .init(牌: .精靈球, 只出一張: false),
-        .init(牌: .紅卡, 只出一張: false),
     ]}
     
     var 統計表名稱: String { "模擬用紅卡 vs 沙奈朵"}
@@ -246,8 +245,21 @@ class 模擬用紅卡: 寶可夢TCG控制器 {
     private var 已完成 = false
     private var 紅卡玩家基礎寶可夢數量 = 0
     
+    private let 紅卡目標卡: 寶可夢牌 = .拉魯拉絲
+    
+    private func 紅卡玩家出牌策略(_ 玩家: 寶可夢玩家) {
+        let 紅卡玩家 = 玩家
+        let 紅卡玩家對手 = 玩家.對手
+        guard 紅卡玩家對手!.棄牌堆.有({$0 == 紅卡目標卡}) else { return }
+        _ = 紅卡玩家.執行出牌策略(.init(牌: .紅卡, 只出一張: false))
+    }
+    
     func 回合結束(_ 玩家: 寶可夢玩家) {
-        guard 玩家 === self.玩家 else { return }
+        guard 玩家 === self.玩家 else {
+            紅卡玩家出牌策略(玩家)
+            return
+        }
+        
         let 紅牌對策張數 = 3
         
         guard 紅牌對策張數 < 玩家.手牌.count else { return }
@@ -1041,11 +1053,6 @@ class 寶可夢玩家 {
         else {
             return 盡可能(執行策略)
         }
-    }
-    
-    func 已放置關鍵卡() -> Bool {
-        //return 棄牌堆.有({$0 == .拉魯拉絲})
-        return false
     }
     
     func 觸發紅卡效果() {
