@@ -46,26 +46,13 @@ let jsonArray = [
 func main() {
     let startTime = Date()
     
-    let tableArray = jsonArray.map({回合統計表(json: $0)!})
-//    for table in tableArray {
-//        table.顯示結果()
-//    }
-    //TODO
-//    let diffArray = 回合統計表.差距次數(
-//        tableArray[2].達成次數,
-//        [
-//            tableArray[0].達成次數, tableArray[1].達成次數
-//        ]
-//    )
-    //TODO
-    
-    //let model = 模擬抽皮卡丘EX()
+    let model = 模擬抽皮卡丘EX()
     //let model = 模擬抽寶石海星()
     //let model = 模擬抽沙奈朵()
     //let model = 模擬用紅卡();model.調整紅卡玩家基礎寶可夢(6)
-    //model.loop(1_000_000)
-    //model.loop(30_000)
-    //model.loop(300)
+    //let result = model.loop(1_000_000)
+    //let result = model.loop(20_000)
+    let result = model.loop(300)
     //model.loop(1)
     
     //實體測試者.執行所有測試()
@@ -73,6 +60,24 @@ func main() {
     
     let endTime = Date(); let costTime = Int(endTime.timeIntervalSince(startTime).rounded())
     print("花費時間: \(costTime) 秒")
+    
+    let tableArray = jsonArray.map({回合統計表(json: $0)!})
+    //tableArray.印出JSON("jsonArray")
+//    for table in tableArray {
+//        table.顯示結果()
+//    }
+    
+    //TODO
+    result[0].顯示結果(.表格)
+    tableArray[2].顯示結果(.表格)
+    let newArray = 回合統計表.合併(tableArray + result)
+    print("newArray[\(newArray.count)]")
+    newArray[2].顯示結果(.表格)
+    //TODO
+    
+    //TODO
+    //result.first!.顯示比較結果(比較: tableArray[2])
+    //TODO
 }
 main()
 
@@ -85,48 +90,94 @@ extension Double {
     }
 }
 
+extension [回合統計表] {
+    func 印出JSON(_ 名稱: String?) {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyyMMdd"
+        let 現在日期 = dateFormatter.string(from: Date())
+        let 名稱 = 名稱 ?? "array\(現在日期)"
+        
+        let 文字標註符號 = "\"\"\""
+        print("let \(名稱) = [")
+        
+        for table in self {
+            print(文字標註符號)
+            print(table.jsonString!)
+            print(文字標註符號)
+            print(",")
+        }
+        print("]")
+    }
+}
+
 class 回合統計表: MyCodable {
+    typealias 統計資料類型 = [[Int]]
+    
+    enum 顯示類型 {
+        case JSON
+        case 標準
+        case 表格
+    }
+    
     private var 目前x軸: Int = 0
-    private var 名稱 = ""
+    private(set) var 名稱 = ""
     private var x軸範圍 = 1...2
     private var 測試次數整數 = 0
     private var 測試次數 = Double(0)
-    
-    typealias 統計資料類型 = [[Int]]
     private var 達成次數: 統計資料類型 = []
-    
-    static func 執行所有測試() {
-        回合統計表.測試合併初始化()
-        回合統計表.測試差距次數()
-    }
     
     init() {}
     
-    init(_ array: [回合統計表]) {
+    static func 執行所有測試() {
+        回合統計表.測試嚴格合併()
+        回合統計表.測試差距次數()
+        回合統計表.測試左右項差距次數()
+        回合統計表.測試修改測試次數()
+    }
+    
+    static func 合併(_ array: [回合統計表]) -> [回合統計表] {
+        var 未合併統計表 = array.map({ 複製資料($0) })
+        var 所有統計表: [回合統計表] = []
+        while var 新統計表 = 未合併統計表.first {
+            未合併統計表 = Array(未合併統計表.dropFirst())
+            for i in (0 ..< 未合併統計表.count).reversed() {
+                if 可嚴格合併(新統計表, 未合併統計表[i]) {
+                    新統計表 = 嚴格合併([ 新統計表, 未合併統計表[i] ])
+                    未合併統計表.remove(at: i)
+                }
+            }
+            所有統計表.append(新統計表)
+        }
+        
+        return 所有統計表
+    }
+    
+    private static func 可嚴格合併(_ 表1: 回合統計表, _ 表2: 回合統計表) -> Bool {
+        (表1.名稱 == 表2.名稱)
+        && (表1.x軸範圍 == 表2.x軸範圍)
+        && (表1.達成次數.count == 表2.達成次數.count)
+        && ( (表1.達成次數.first?.count ?? 0) == (表2.達成次數.first?.count ?? 0) )
+    }
+    
+    private static func 嚴格合併(_ array: [回合統計表]) -> 回合統計表 {
         let first = array.first!
-        let 名稱 = first.名稱
-        let x軸範圍 = first.x軸範圍
-        let x軸數量 = first.達成次數.count
-        let 回合數量 = first.達成次數.first!.count
         assert(
             array.first(where: {
-                ($0.名稱 != 名稱)
-                || ($0.x軸範圍 != x軸範圍)
-                || ($0.達成次數.count != x軸數量)
-                || ($0.達成次數.first!.count != 回合數量)
+                可嚴格合併(first, $0) == false
             }) == nil
         )
         
-        let result = self
-        result.複製資料(first)
+        let result = 回合統計表.複製資料(first)
         result.測試次數整數 = array.reduce(0, {$0 + $1.測試次數整數})
         result.測試次數 = Double(result.測試次數整數)
         
         for rhs in array.dropFirst() {
             result.達成次數 = 回合統計表.疊加(result.達成次數, rhs.達成次數)
         }
+        
+        return result
     }
-    private static func 測試合併初始化() {
+    private static func 測試嚴格合併() {
         let table1 = 回合統計表()
         table1.重置(100, 名稱: "table", 範圍: 1...3, 回合數上限: 2)
         table1.達成次數 = [
@@ -140,7 +191,7 @@ class 回合統計表: MyCodable {
             [3,6,9],
         ]
         
-        let newTable = 回合統計表([table1, table2])
+        let newTable = 回合統計表.嚴格合併([table1, table2])
         assert(
             newTable.達成次數 == [
                 [10,11,12],
@@ -150,13 +201,8 @@ class 回合統計表: MyCodable {
         assert( newTable.測試次數整數 == 150 )
     }
     
-    func 複製資料(_ 統計表: 回合統計表) {
-        目前x軸 = 統計表.目前x軸
-        名稱 = 統計表.名稱
-        x軸範圍 = 統計表.x軸範圍
-        測試次數整數 = 統計表.測試次數整數
-        測試次數 = 統計表.測試次數
-        達成次數 = 統計表.達成次數
+    static func 複製資料(_ 統計表: 回合統計表) -> 回合統計表 {
+        回合統計表(data: 統計表.jsonData!)!
     }
     
     func 重置牌組計算範圍(_ 玩家: 寶可夢玩家, 最低 最低雜牌基礎寶可夢數量: Int) -> ClosedRange<Int> {
@@ -187,10 +233,12 @@ class 回合統計表: MyCodable {
         達成次數[目前x軸 - x軸範圍.lowerBound][回合] += 次數
     }
     
-    private static func 左右項差距次數(_ 達成次數: 統計資料類型) -> 統計資料類型 {
-        let 第一項 = 達成次數.first!
+    func 左右項差距次數() -> 回合統計表 {
+        let result = 回合統計表.複製資料(self)
+        
+        let 第一項 = result.達成次數.first!
         let 回合範圍 = (0 ..< 第一項.count)
-        var 達成次數 = 達成次數
+        var 達成次數 = result.達成次數
         
         for 回合 in 回合範圍 {
             for x in (1 ..< 達成次數.count).reversed() {
@@ -198,60 +246,144 @@ class 回合統計表: MyCodable {
             }
             達成次數[0][回合] = 0//Set baseline to 0
         }
+        result.達成次數 = 達成次數
         
-        return 達成次數
+        return result
     }
-    
-    private static func 差距次數(_ 比較基準: 統計資料類型, _ 比較目標陣列: [統計資料類型]) -> [統計資料類型] {
-        var 比較後結果: [統計資料類型] = []
-        for 達成次數 in 比較目標陣列 {
-            let 第一項 = 達成次數.first!
-            let 回合範圍 = (0 ..< 第一項.count)
-            var 達成次數 = 達成次數
-            
-            for 回合 in 回合範圍 {
-                for x in (0 ..< 達成次數.count) {
-                    let 值 = 比較基準[safe: x]?[safe: 回合] ?? 0
-                    達成次數[x][回合] = 達成次數[x][回合] - 值
-                }
-            }
-            比較後結果.append(達成次數)
-        }
-        
-        return 比較後結果
-    }
-    private static func 測試差距次數() {
-        let table1: 統計資料類型 = [
+    private static func 測試左右項差距次數() {
+        let table1: 回合統計表 = 回合統計表()
+        table1.重置(123, 名稱: "table1", 範圍: 2...3, 回合數上限: 2)
+        table1.達成次數 = [
             [1,3,5],
             [0,1,2],
         ]
-        let table2: 統計資料類型 = [
-            [9,8,7],
-            [3,6,9],
+        
+        let newTable1 = table1.左右項差距次數()
+        assert(
+            table1.達成次數 == [
+                [1,3,5],
+                [0,1,2],
+            ]
+        )
+        assert(
+            newTable1.達成次數 == [
+                [
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    -1,
+                    -2,
+                    -3
+                ],
+            ]
+        )
+    }
+    
+    func 修改測試次數(_ 倍數: Int) -> 回合統計表 {
+        let result = 回合統計表.複製資料(self)
+        guard 倍數 != 1 else { return result }
+        
+        result.測試次數整數 = result.測試次數整數 * 倍數
+        result.測試次數 = Double(result.測試次數整數)
+        let 回合範圍 = (0 ..< result.達成次數.first!.count)
+        for 回合 in 回合範圍 {
+            for x in (0 ..< result.達成次數.count) {
+                result.達成次數[x][回合] *= 倍數
+            }
+        }
+        
+        return result
+    }
+    private static func 測試修改測試次數() {
+        let table1: 回合統計表 = 回合統計表()
+        table1.重置(123, 名稱: "table1", 範圍: 2...3, 回合數上限: 2)
+        table1.達成次數 = [
+            [1,3,5],
+            [0,1,2],
         ]
-        let table3: 統計資料類型 = [
+        
+        let newTable1 = table1.修改測試次數(10)
+        assert(
+            table1.達成次數 == [
+                [1,3,5],
+                [0,1,2],
+            ]
+        )
+        assert(
+            newTable1.達成次數 == [
+                [10,30,50],
+                [00,10,20],
+            ]
+        )
+    }
+    
+    func 差距次數(_ 比較對象統計表: 回合統計表) -> 回合統計表 {
+        let anotherOne = 回合統計表.複製資料(比較對象統計表)
+        
+        let result = 回合統計表.複製資料(self)
+        result.名稱 = result.名稱 + "_比較_" + 比較對象統計表.名稱
+        
+        let minX = max(result.x軸範圍.lowerBound, anotherOne.x軸範圍.lowerBound)
+        let maxX = min(result.x軸範圍.upperBound, anotherOne.x軸範圍.upperBound)
+        
+        func 調整X(_ table: 回合統計表) {
+            let 前方多餘數量 = minX - table.x軸範圍.lowerBound
+            let 後方多餘數量 = table.x軸範圍.upperBound - maxX
+            
+            table.達成次數 = table.達成次數.dropFirst(前方多餘數量).dropLast(後方多餘數量)
+            table.x軸範圍 = minX ... maxX
+        }
+        
+        調整X(result)
+        調整X(anotherOne)
+        let 回合範圍 = (0 ..< result.達成次數.first!.count)
+        for 回合 in 回合範圍 {
+            for x in (0 ..< result.達成次數.count) {
+                result.達成次數[x][回合] -= anotherOne.達成次數[x][回合]
+            }
+        }
+        
+        return result
+    }
+    private static func 測試差距次數() {
+        let table1: 回合統計表 = 回合統計表()
+        table1.重置(123, 名稱: "table1", 範圍: 2...3, 回合數上限: 2)
+        table1.達成次數 = [
+            [1,3,5],
+            [0,1,2],
+        ]
+        let table2: 回合統計表 = 回合統計表()
+        table2.重置(2, 名稱: "table2", 範圍: 2...2, 回合數上限: 2)
+        table2.達成次數 = [
+            [9,8,7],
+        ]
+        let table3: 回合統計表 = 回合統計表()
+        table3.重置(3, 名稱: "table3", 範圍: 1...3, 回合數上限: 2)
+        table3.達成次數 = [
             [9,8,7],
             [3,6,9],
             [1,2,3],
         ]
         
-        let array = 回合統計表.差距次數(
-            table1,
-            [table2, table3]
-        )
-        let newTable2 = array[0]
-        let newTable3 = array[1]
-        assert (
-            newTable2 == [
-                [8,5,2],
-                [3,5,7],
+        let newTable2 = table1.差距次數(table2)
+        let newTable3 = table1.差距次數(table3)
+        assert(
+            table1.達成次數 == [
+                [1,3,5],
+                [0,1,2],
             ]
         )
-        assert (
-            newTable3 == [
-                [8,5,2],
-                [3,5,7],
-                [1,2,3],
+        assert(
+            newTable2.達成次數 == [
+                [-8,-5,-2],
+            ]
+        )
+        assert(
+            newTable3.達成次數 == [
+                [-2,-3,-4],
+                [-1,-1,-1],
             ]
         )
     }
@@ -331,29 +463,70 @@ class 回合統計表: MyCodable {
         return array
     }
     
-    func 顯示結果() {
-        print(self.jsonString!)
-    }
-    
-    func 顯示標準結果() {
+    func 顯示結果(_ 類型: 顯示類型 = .JSON) {
+        guard 類型 != .JSON else {
+            print(self.jsonString!)
+            return
+        }
+        
         var 達成次數 = 達成次數
         達成次數 = 回合統計表.加總(達成次數)
         達成次數 = 回合統計表.去尾(達成次數, 測試次數整數)
+        let 文字表 = 回合統計表.製表(達成次數, 1, 測試次數)
         
-        print(名稱 + "[\(測試次數整數)]")
-        print(回合統計表.旋轉後加標題(回合統計表.製表(達成次數, 1, 測試次數), x軸範圍).reduce("", {$0 + "\n" + $1.joined(separator: ",")}).dropFirst() + "\n")
+        switch 類型 {
+        case .JSON:
+            break
+        case .標準:
+            顯示標準結果(文字表)
+        case .表格:
+            顯示表格結果(文字表)
+        }
     }
     
-    func 顯示表格結果() {
-        var 達成次數 = 達成次數
-        達成次數 = 回合統計表.加總(達成次數)
-        達成次數 = 回合統計表.去尾(達成次數, 測試次數整數)
+    func 顯示比較結果(_ 類型: 顯示類型 = .表格, 比較 比較對象統計表: 回合統計表) {
+        let biggerOne = max(self.測試次數整數, 比較對象統計表.測試次數整數)
+        let smallerOne = min(self.測試次數整數, 比較對象統計表.測試次數整數)
+        assert(biggerOne % smallerOne == 0, "不能被整除")
         
-        print(名稱 + "[\(測試次數整數)]")
-        print(回合統計表.旋轉後加標題(回合統計表.製表(達成次數, 1, 測試次數), x軸範圍).matterMostOutput())
+        let result = self.修改測試次數(biggerOne / self.測試次數整數)
+        let anotherOne = 比較對象統計表.修改測試次數(biggerOne / 比較對象統計表.測試次數整數)
+        result.達成次數 = 回合統計表.加總(result.達成次數)
+        anotherOne.達成次數 = 回合統計表.加總(anotherOne.達成次數)
+        
+        let comparisonResult = result.差距次數(anotherOne)
+        result.名稱 = comparisonResult.名稱
+        comparisonResult.名稱 = "比較表"
+        
+        var resultTable = 回合統計表.製表(result.達成次數, 1, result.測試次數)
+        let comparisonResultTable = 回合統計表.製表(comparisonResult.達成次數, 1, comparisonResult.測試次數)
+        for x in (0 ..< resultTable.count) {
+            for y in (0 ..< (resultTable.first?.count ?? 0)) {
+                resultTable[x][y] += "(\(comparisonResultTable[x][y]))"
+            }
+        }
+        
+        switch 類型 {
+        case .JSON:
+            fatalError("不支援")
+        case .標準:
+            顯示標準結果(resultTable)
+        case .表格:
+            顯示表格結果(resultTable)
+        }
     }
     
-    static func 單項運算組合後顯示結果(_ array: [回合統計表]) {
+    private func 顯示標準結果(_ 文字表: [[String]]) {
+        print(名稱 + "[\(測試次數整數)]")
+        print(回合統計表.旋轉後加標題(文字表, x軸範圍).reduce("", {$0 + "\n" + $1.joined(separator: ",")}).dropFirst() + "\n")
+    }
+    
+    private func 顯示表格結果(_ 文字表: [[String]]) {
+        print(名稱 + "[\(測試次數整數)]")
+        print(回合統計表.旋轉後加標題(文字表, x軸範圍).matterMostOutput())
+    }
+    
+    static func 組合運算後結果(_ array: [回合統計表]) -> [回合統計表] {
         let 所有統計表名稱 = array.map(\.名稱).removeDuplicates()
         let 所有統計表分類: [[回合統計表]] = 所有統計表名稱.map({ 統計表名稱 in
             array.filter({$0.名稱 == 統計表名稱}).sorted(by: {$0.x軸範圍.lowerBound < $1.x軸範圍.lowerBound})
@@ -364,8 +537,7 @@ class 回合統計表: MyCodable {
             let first = $0.first!
             let last = $0.last!
             
-            let result = 回合統計表()
-            result.複製資料(first)
+            let result = 回合統計表.複製資料(first)
             result.x軸範圍 = first.x軸範圍.lowerBound ... last.x軸範圍.upperBound
             result.達成次數 = []
             
@@ -375,9 +547,16 @@ class 回合統計表: MyCodable {
             return result
         })
         
+        return 所有統計表
+    }
+    
+    static func 組合運算後顯示結果(_ array: [回合統計表]) -> [回合統計表] {
+        let 所有統計表 = 組合運算後結果(array)
+        
         for 統計表 in 所有統計表 {
             統計表.顯示結果()
         }
+        return 所有統計表
     }
 }
 
@@ -508,7 +687,7 @@ class 模擬用紅卡: 寶可夢TCG控制器 {
         已完成 = true
     }
     
-    func loop(_ 測試次數: Int) {
+    func loop(_ 測試次數: Int) -> [回合統計表] {
         let 雜牌基礎寶可夢數量範圍 = 計算雜牌基礎寶可夢數量範圍(統計表)
         let 先手玩家出牌策略 = 先手玩家出牌策略
         let 紅卡玩家出牌策略 = 紅卡玩家出牌策略
@@ -531,7 +710,8 @@ class 模擬用紅卡: 寶可夢TCG控制器 {
             let 百分比 = Int(Double(模型[0].目前測試數) / Double(測試次數) * 100)
             print("測試次數 \(模型[0].目前測試數) / \(測試次數) = \(百分比)")
         }
-        回合統計表.單項運算組合後顯示結果(模型.map({$0.統計表}))
+        
+        return 回合統計表.組合運算後顯示結果(模型.map({$0.統計表}))
     }
 }
 
@@ -586,8 +766,8 @@ class 模擬抽沙奈朵: 寶可夢TCG控制器 {
     
     var 出牌策略: [寶可夢出牌策略] {[
 //        .init(牌: .幻之石板, 只出一張: false),
-//        .init(牌: .大木博士, 只出一張: true),
-//        .init(牌: .精靈球, 只出一張: false),
+        .init(牌: .大木博士, 只出一張: true),
+        .init(牌: .精靈球, 只出一張: false),
     ]}
     
     var 統計表名稱: String { "沙奈朵" }
@@ -625,7 +805,7 @@ class 模擬抽沙奈朵: 寶可夢TCG控制器 {
         已完成 = true
     }
     
-    func loop(_ 測試次數: Int) {
+    func loop(_ 測試次數: Int) -> [回合統計表] {
         let 雜牌基礎寶可夢數量範圍 = 計算雜牌基礎寶可夢數量範圍(統計表)
         let 所有出牌順序 = 出牌策略.所有順序()
         
@@ -647,7 +827,8 @@ class 模擬抽沙奈朵: 寶可夢TCG控制器 {
             let 百分比 = Int(Double(模型[0].目前測試數) / Double(測試次數) * 100)
             print("測試次數 \(模型[0].目前測試數) / \(測試次數) = \(百分比)")
         }
-        回合統計表.單項運算組合後顯示結果(模型.map({$0.統計表}))
+        
+        return 回合統計表.組合運算後顯示結果(模型.map({$0.統計表}))
     }
 }
 
@@ -725,7 +906,7 @@ class 模擬抽皮卡丘EX: 寶可夢TCG控制器 {
         已完成 = true
     }
     
-    func loop(_ 測試次數: Int) {
+    func loop(_ 測試次數: Int) -> [回合統計表] {
         let 雜牌基礎寶可夢數量範圍 = 統計表.重置牌組計算範圍(玩家, 最低: 2)
         let 所有出牌順序 = 出牌策略.所有順序()
         
@@ -747,7 +928,8 @@ class 模擬抽皮卡丘EX: 寶可夢TCG控制器 {
             let 百分比 = Int(Double(模型[0].目前測試數) / Double(測試次數) * 100)
             print("測試次數 \(模型[0].目前測試數) / \(測試次數) = \(百分比)")
         }
-        回合統計表.單項運算組合後顯示結果(模型.map({$0.統計表}))
+        
+        return 回合統計表.組合運算後顯示結果(模型.map({$0.統計表}))
     }
 }
 
