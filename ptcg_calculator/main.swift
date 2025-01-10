@@ -813,7 +813,7 @@ class 寶可夢TCG {
             for 玩家 in 所有玩家 {
                 玩家.新回合()
                 
-                debug_msg(玩家, 2, "\(#function)")
+                //debug_msg(玩家, 2, "\(#function)")
                 控制器?.回合結束(玩家)
                 
                 已結束 = 詢問遊戲結束()
@@ -826,7 +826,7 @@ class 寶可夢TCG {
     }
     
     private func 遊戲結束(_ 玩家: 寶可夢玩家) {
-        debug_msg(玩家, 1, "遊戲結束")
+        //debug_msg(玩家, 1, "遊戲結束")
         控制器?.遊戲結束()
     }
     
@@ -1078,7 +1078,7 @@ class 沙奈朵玩家: 寶可夢玩家 {
     }
     
     private func 出關鍵牌如果能() {
-        debug_msg(self, 1, "\(#function)")
+        //debug_msg(self, 1, "\(#function)")
         
         let 上回合幾張拉魯拉絲 = 棄牌堆.有幾張({$0 == .拉魯拉絲})
         let 上回合幾張奇魯莉安 = 棄牌堆.有幾張({$0 == .奇魯莉安})
@@ -1150,7 +1150,7 @@ class 寶可夢玩家 {
     }
     
     func 測試用重置抽牌堆(_ 牌組: [寶可夢牌]) {
-        debug_msg(self, 1, "\(#function)")
+        //debug_msg(self, 1, "\(#function)")
         抽牌堆 = 牌組
     }
     
@@ -1165,7 +1165,7 @@ class 寶可夢玩家 {
     }
     
     func 重置() {
-        debug_msg(self, 1, "\(#function)")
+        //debug_msg(self, 1, "\(#function)")
         
         抽牌堆 = 牌組
         
@@ -1176,12 +1176,12 @@ class 寶可夢玩家 {
     }
     
     func 洗牌() {
-        debug_msg(self, 2, "\(#function)")
+        //debug_msg(self, 2, "\(#function)")
         抽牌堆.shuffle()
     }
     
     func 準備() {
-        debug_msg(self, 1, "\(#function)")
+        //debug_msg(self, 1, "\(#function)")
         
         guard let 基礎寶可夢 = 抽牌堆.抽({
             $0.是基礎寶可夢()
@@ -1193,31 +1193,31 @@ class 寶可夢玩家 {
     }
     
     private func 新回合抽牌() {
-        debug_msg(self, 2, "\(#function)")
+        //debug_msg(self, 2, "\(#function)")
         
         抽牌(數量: 1)
     }
     
     func 抽牌(數量: Int) {
-        debug_msg(self, 2, "\(#function)", "\(數量)")
+        //debug_msg(self, 2, "\(#function)", "\(數量)")
         
         手牌 += 抽牌堆.抽(數量: 數量)
     }
     
     func 新回合() {
-        debug_msg(self, 1, "_______________")
-        debug_msg(self, 1, "\(#function), \(遊戲!.目前回合)")
+        //debug_msg(self, 1, "_______________")
+        //debug_msg(self, 1, "\(#function), \(遊戲!.目前回合)")
         
         當前回合未使用支援者 = true
         
         新回合抽牌()
-        debug_msg(self, 1, "新回合抽牌後", 牌堆數量資訊())
+        //debug_msg(self, 1, "新回合抽牌後", 牌堆數量資訊())
         出牌階段()
-        debug_msg(self, 1, "出牌後", 牌堆數量資訊())
+        //debug_msg(self, 1, "出牌後", 牌堆數量資訊())
     }
     
     func 出牌階段() {
-        debug_msg(self, 1, "\(#function)")
+        //debug_msg(self, 1, "\(#function)")
         
         var result: Bool = true
         while result {
@@ -1230,7 +1230,7 @@ class 寶可夢玩家 {
     }
     
     func 執行出牌策略(_ 策略: 寶可夢出牌策略) -> Bool {
-        debug_msg(self, 2, "\(#function), \(策略.牌.名稱)")
+        //debug_msg(self, 2, "\(#function), \(策略.牌.名稱)")
         
         let 執行策略: () -> Bool
         
@@ -1265,7 +1265,7 @@ class 寶可夢玩家 {
         洗牌()
         抽牌(數量: 3)
         
-        debug_msg(self, 1, "\(#function)了")
+        //debug_msg(self, 1, "\(#function)了")
     }
     
     private func 盡可能(_ 用卡: ()->Bool) -> Bool {
@@ -1324,12 +1324,11 @@ class 寶可夢玩家 {
     }
     
     func 棄牌(_ 牌: 寶可夢牌) -> Bool {
-        //debug_msg(self, 2, "\(#function), \(牌.名稱)")
         
         guard let 手牌的牌 = 手牌.抽({$0 == 牌}) else { return false }
         棄牌堆 += [手牌的牌]
         
-        debug_msg(self, 1, "\(#function) 成功, \(牌.名稱)")
+        //debug_msg(self, 1, "\(#function) 成功, \(牌.名稱)")
         return true
     }
 }
