@@ -31,21 +31,27 @@ func debug_msg(_ 玩家: 寶可夢玩家, _ flagIndex: Int, _ array: String...) 
 func main() {
     let startTime = Date()
     
-    let model = 模擬抽皮卡丘EX()
+    let model = 模擬抽皮卡丘2()
+    model.設定雜牌基礎寶可夢數量範圍(2...6)
+    model.設定所有出牌策略([])
+    
     //let model = 模擬抽寶石海星()
     //let model = 模擬抽沙奈朵()
     //let model = 模擬用紅卡();model.調整紅卡玩家基礎寶可夢(6)
     //let result = model.loop(1_000_000)
-    //let result = model.loop(20_000)
-    let result = model.loop(300)
-    //model.loop(1)
+    let result = model.loop(20_000)
+    //let result = model.loop(300)
+    //let result = model.loop(1)
+    
+    result.first!.顯示結果(.表格)
     
     //實體測試者.執行所有測試()
     //回合統計表.執行所有測試()
     
     let endTime = Date(); let costTime = Int(endTime.timeIntervalSince(startTime).rounded())
     print("花費時間: \(costTime) 秒")
-    //let tableArray = jsonArray.map({回合統計表(json: $0)!})
+    let tableArray = jsonArray.map({回合統計表(json: $0)!})
+    tableArray[2].顯示結果(.表格)
     //tableArray.印出JSON("jsonArray")
 //    for table in tableArray {
 //        table.顯示結果()
@@ -104,6 +110,122 @@ class 模擬單次抽牌 {
         }
         
         if 顯示結果 { 統計表.顯示結果() }
+    }
+}
+
+class 模擬抽皮卡丘2: 模擬測試<皮卡丘EX玩家> {
+    override var 目前模型: 模擬測試<皮卡丘EX玩家> {
+        模擬抽皮卡丘2()
+    }
+    
+    override func 是否遊戲結束() -> Bool {
+        let 基礎寶可夢充足 = 玩家.手牌.有幾張({$0.是基礎寶可夢()}) >= 4
+        let 有皮卡丘 = 玩家.手牌.有({$0 == .皮卡丘EX})
+        return 有皮卡丘 && 基礎寶可夢充足
+    }
+    
+//    override func 測試前設置(_ 測試次數: Int, _ x: Int, _ 出牌策略: [寶可夢出牌策略]) {
+//        super.測試前設置(測試次數, x, 出牌策略)
+//    }
+}
+
+class 模擬測試<模擬玩家: 寶可夢玩家>: 寶可夢TCG控制器 {
+    var 遊戲: 寶可夢TCG = .init(所有玩家: [
+        模擬玩家(), 陪練玩家.後手陪練玩家()
+    ])
+    var 玩家: 模擬玩家 {遊戲.所有玩家.first as! 模擬玩家}
+    
+    var 目前模型: 模擬測試<模擬玩家> {
+        模擬測試<模擬玩家>()
+    }
+    
+    lazy var 統計表名稱: String = { 玩家.名稱 }()
+    func 計算雜牌基礎寶可夢數量範圍(_ 統計表: 回合統計表) -> ClosedRange<Int> {
+        統計表.重置牌組計算範圍(玩家, 最低: 0)
+    }
+    
+    let 統計表 = 回合統計表()
+    private var 目前測試數: Int = 0
+    private var 已完成 = false
+    private var 雜牌基礎寶可夢數量範圍 = 2...6
+    private var 所有出牌策略: [[寶可夢出牌策略]] = [
+        [
+            .init(牌: .幻之石板, 只出一張: false),
+            .init(牌: .大木博士, 只出一張: true),
+            .init(牌: .精靈球, 只出一張: false),
+        ],
+        [
+            .init(牌: .大木博士, 只出一張: true),
+            .init(牌: .精靈球, 只出一張: false),
+        ]
+    ]
+    
+    func 回合結束(_ 玩家: 寶可夢玩家) {}
+    
+    func 是否遊戲結束() -> Bool { true }
+    
+    func 遊戲結束() {
+        統計表.加次數(遊戲.目前回合)
+    }
+    
+    func 測試前設置(_ 測試次數: Int, _ x: Int, _ 出牌策略: [寶可夢出牌策略]) {
+        遊戲.控制器 = self
+        
+        let 統計表名 = "\(統計表名稱), " + 出牌策略.順序名()
+        統計表.重置(測試次數, 名稱: 統計表名, 範圍: x ... x, 回合數上限: 遊戲.牌組數量上限)
+        統計表.設定(數量: x)
+        玩家.重置牌組(雜牌: x)
+        
+        玩家.出牌策略 = 出牌策略
+    }
+    
+    func 啟動測試() {
+        遊戲.重新開始()
+    }
+    
+    private func 測試(_ 測試次數: Int) {
+        已完成 = false
+        
+        for 次數 in 0 ..< 測試次數 {
+            目前測試數 = 次數
+            啟動測試()
+        }
+        
+        已完成 = true
+    }
+    
+    func 設定雜牌基礎寶可夢數量範圍(_ 範圍: ClosedRange<Int>) {
+        雜牌基礎寶可夢數量範圍 = 範圍
+    }
+    
+    func 設定所有出牌策略(_ 所有出牌策略: [[寶可夢出牌策略]]) {
+        self.所有出牌策略 = 所有出牌策略
+    }
+    
+    func loop(_ 測試次數: Int) -> [回合統計表] {
+        let 所有出牌策略: [[寶可夢出牌策略]] = 所有出牌策略.isEmpty ? [[]] : 所有出牌策略
+        
+        let 統計表數量 = 雜牌基礎寶可夢數量範圍.count * 所有出牌策略.count
+        let 模型: [模擬測試<模擬玩家>] = (0 ..< 統計表數量).map({_ in self.目前模型})
+        
+        for (出牌策略編號, 出牌策略) in 所有出牌策略.enumerated() {
+            for 雜牌基礎寶可夢數量 in 雜牌基礎寶可夢數量範圍 {
+                let 模型編號 = (雜牌基礎寶可夢數量 - 雜牌基礎寶可夢數量範圍.lowerBound) + (出牌策略編號 * 雜牌基礎寶可夢數量範圍.count)
+                模型[模型編號].測試前設置(測試次數, 雜牌基礎寶可夢數量, 出牌策略)
+                
+                DispatchQueue.global().async {
+                    模型[模型編號].測試(測試次數)
+                }
+            }
+        }
+        
+        while (模型.first(where: {$0.已完成 == false}) != nil) {
+            sleep(1)
+            let 百分比 = Int(Double(模型[0].目前測試數) / Double(測試次數) * 100)
+            print("測試次數 \(模型[0].目前測試數) / \(測試次數) = \(百分比)")
+        }
+        
+        return 回合統計表.組合運算後顯示結果(模型.map({$0.統計表}))
     }
 }
 
@@ -726,6 +848,7 @@ extension Array where Element == 寶可夢牌 {
 }
 
 class 紅卡玩家: 寶可夢玩家 {
+    override var 名稱: String { "紅卡" }
     static func 後手陪練玩家() -> 紅卡玩家 {
         let 玩家 = 紅卡玩家()
         玩家.先手玩家 = false
@@ -739,6 +862,7 @@ class 紅卡玩家: 寶可夢玩家 {
 }
 
 class 陪練玩家: 寶可夢玩家 {
+    override var 名稱: String { "陪練" }
     static func 後手陪練玩家() -> 陪練玩家 {
         let 玩家 = 陪練玩家()
         玩家.先手玩家 = false
@@ -753,6 +877,7 @@ class 陪練玩家: 寶可夢玩家 {
 }
 
 class 皮卡丘EX玩家: 寶可夢玩家 {
+    override var 名稱: String { "皮卡丘EX" }
     override func 取得核心牌組() -> [寶可夢牌] {
         .init(同卡: .皮卡丘EX)
         + .博士與精靈球
@@ -760,6 +885,7 @@ class 皮卡丘EX玩家: 寶可夢玩家 {
 }
 
 class 沙奈朵玩家: 寶可夢玩家 {
+    override var 名稱: String { "沙奈朵" }
     override func 取得核心牌組() -> [寶可夢牌] {
         .init(同卡: .沙奈朵)
         + .init(同卡: .奇魯莉安)
@@ -798,6 +924,7 @@ class 沙奈朵玩家: 寶可夢玩家 {
 
 class 寶可夢玩家 {
     weak var 遊戲: 寶可夢TCG?
+    var 名稱: String { "寶可夢玩家" }
     var 對手: 寶可夢玩家? {遊戲?.所有玩家.first(where: {$0 !== self})}
     var 先手玩家: Bool = true
     var 牌組數量上限: Int {遊戲?.牌組數量上限 ?? 寶可夢TCG.預設牌組數量上限}
@@ -815,6 +942,8 @@ class 寶可夢玩家 {
     private(set) var 手牌: [寶可夢牌] = []
     private(set) var 抽牌堆: [寶可夢牌] = []
     private(set) var 棄牌堆: [寶可夢牌] = []
+    
+    required init() {}
     
     func 顯示牌堆資訊(_ 牌堆名稱: [KeyPath<寶可夢玩家, [寶可夢牌]>] = [\.手牌, \.抽牌堆, \.棄牌堆]) {
         print("_______________")
