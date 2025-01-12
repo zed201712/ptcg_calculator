@@ -184,33 +184,37 @@ class 回合統計表: MyCodable {
         return result
     }
     
-    private static func 加總(_ 達成次數: 統計資料類型) -> 統計資料類型 {
-        let 第一項 = 達成次數.first!
-        var 達成次數 = 達成次數
-        for x in 0 ..< 達成次數.count {
+    private func 加總() -> 回合統計表 {
+        let result = 回合統計表.複製資料(self)
+        
+        let 第一項 = result.達成次數.first!
+        for x in 0 ..< result.達成次數.count {
             for 回合 in 1 ..< 第一項.count {
-                達成次數[x][回合] += 達成次數[x][回合 - 1]
+                result.達成次數[x][回合] += result.達成次數[x][回合 - 1]
             }
         }
-        return 達成次數
+        
+        return result
     }
     
-    private static func 去尾(_ 達成次數: 統計資料類型, _ 總次數: Int) -> 統計資料類型 {
-        let 第一項 = 達成次數.first!
+    private func 去尾() -> 回合統計表 {
+        let result = 回合統計表.複製資料(self)
+        
+        let 第一項 = result.達成次數.first!
         let 回合範圍 = (0 ..< 第一項.count)
-        var 達成次數 = 達成次數
         
         let 全百分百回合 = Array(回合範圍).firstIndex(where: { 回合 in
-            (0 ..< 達成次數.count).first(
+            (0 ..< result.達成次數.count).first(
                 where: { x in
-                    達成次數[x][回合] < 總次數
+                    result.達成次數[x][回合] < result.測試次數整數
                 }
             ) == nil
         }) ?? (回合範圍.count - 1)
-        for x in 0 ..< 達成次數.count {
-            達成次數[x] = Array(達成次數[x].prefix(全百分百回合 + 1))
+        for x in 0 ..< result.達成次數.count {
+            result.達成次數[x] = Array(result.達成次數[x].prefix(全百分百回合 + 1))
         }
-        return 達成次數
+        
+        return result
     }
     
     private static func 製表(_ 達成次數: 統計資料類型, _ 小數點位數: Int, _ 測試次數: Double) -> [[String]] {
@@ -258,18 +262,16 @@ class 回合統計表: MyCodable {
             return
         }
         
-        var 達成次數 = 達成次數
-        達成次數 = 回合統計表.加總(達成次數)
-        達成次數 = 回合統計表.去尾(達成次數, 測試次數整數)
-        let 文字表 = 製表(資料類型)
+        let 新統計表 = self.加總().去尾()
+        let 文字表 = 新統計表.製表(資料類型)
         
         switch 類型 {
         case .JSON:
             break
         case .標準:
-            顯示標準結果(文字表)
+            新統計表.顯示標準結果(文字表)
         case .表格:
-            顯示表格結果(文字表)
+            新統計表.顯示表格結果(文字表)
         }
     }
     
@@ -278,10 +280,8 @@ class 回合統計表: MyCodable {
         let smallerOne = min(self.測試次數整數, 比較對象統計表.測試次數整數)
         assert(biggerOne % smallerOne == 0, "不能被整除")
         
-        let result = self.修改測試次數(biggerOne / self.測試次數整數)
-        let anotherOne = 比較對象統計表.修改測試次數(biggerOne / 比較對象統計表.測試次數整數)
-        result.達成次數 = 回合統計表.加總(result.達成次數)
-        anotherOne.達成次數 = 回合統計表.加總(anotherOne.達成次數)
+        let result = self.修改測試次數(biggerOne / self.測試次數整數).加總()
+        let anotherOne = 比較對象統計表.修改測試次數(biggerOne / 比較對象統計表.測試次數整數).加總()
         
         let comparisonResult = result.差距次數(anotherOne)
         result.名稱 = comparisonResult.名稱
@@ -297,9 +297,9 @@ class 回合統計表: MyCodable {
         case .JSON:
             fatalError("不支援")
         case .標準:
-            顯示標準結果(resultTable)
+            result.顯示標準結果(resultTable)
         case .表格:
-            顯示表格結果(resultTable)
+            result.顯示表格結果(resultTable)
         }
     }
     
