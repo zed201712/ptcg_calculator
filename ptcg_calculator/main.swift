@@ -32,43 +32,56 @@ func main() {
     let startTime = Date()
     
     
-    let model = 模擬抽皮卡丘EX()
-    //let model = 模擬抽寶石海星()
+    //let model = 模擬抽皮卡丘EX()
+    let model = 模擬抽寶石海星()
     //let model = 模擬抽沙奈朵()
     //let model = 模擬用紅卡();model.調整紅卡玩家基礎寶可夢(6)
     //let model = 模擬抽沙奈朵()
-    model.設定雜牌基礎寶可夢數量範圍(2...6)
-    model.設定所有出牌策略([])
-    //let result = model.loop(1_000_000)
-    let result = model.loop(20_000)
-    //let result = model.loop(300)
-    //let result = model.loop(1)
     
-    result.first!.顯示結果(.表格)
+    model.設定雜牌基礎寶可夢數量範圍(0...8)
+    
+//    model.設定所有出牌策略([])
+//    model.設定起始手牌([])
+    let 單卡 = 寶可夢牌.精靈球
+    model.設定所有出牌策略([[.init(牌: 單卡, 只出一張: true)]])
+    model.設定起始手牌([單卡])
+    
+    let result = model.loop(1_000_000)
+    //let result = model.loop(300_000)
+    //let result = model.loop(20_000)
+    //let result = model.loop(300)
+    //let result = model.loop(2)
+    
     
     //實體測試者.執行所有測試()
     //回合統計表.執行所有測試()
     
+    //result.first!.顯示結果(.表格)
+    
     let endTime = Date(); let costTime = Int(endTime.timeIntervalSince(startTime).rounded())
     print("花費時間: \(costTime) 秒")
     let tableArray = jsonArray.map({回合統計表(json: $0)!})
-    tableArray[2].顯示結果(.表格)
-    //tableArray.印出JSON("jsonArray")
 //    for table in tableArray {
-//        table.顯示結果()
+//        table.顯示結果(.表格)
 //    }
     
-    //TODO
-//    result[0].顯示結果(.表格)
-//    tableArray[2].顯示結果(.表格)
-//    let newArray = 回合統計表.合併(tableArray + result)
-//    print("newArray[\(newArray.count)]")
-//    newArray[2].顯示結果(.表格)
-    //TODO
+    //比較
+//    let targetName = "沙奈朵"
+//    let targetRefTableIndex = tableArray.firstIndex(where: {$0.名稱 == "\(targetName), 無"})!
+//    let targetRefTable = tableArray[targetRefTableIndex].加總()
+//    let allTargetTable = (tableArray.prefix(targetRefTableIndex) + tableArray.dropFirst(targetRefTableIndex + 1)).filter({$0.名稱.hasPrefix("\(targetName)")})
+//    for table in allTargetTable {
+//        table.加總().顯示比較結果(.標準, 比較: targetRefTable)
+//    }
     
-    //TODO
-    //result.first!.顯示比較結果(比較: tableArray[2])
-    //TODO
+    //合併
+//    let newArray = 回合統計表.合併(tableArray + 回合統計表.組合運算後顯示結果(result + [tableArray[3]]))
+    let newArray = 回合統計表.合併(tableArray + result)
+    print("newArray[\(newArray.count)]")
+    newArray.印出JSON()
+//    
+//    tableArray[3].顯示結果(.標準)
+//    result.first!.顯示結果(.標準)
 }
 main()
 

@@ -147,7 +147,7 @@ extension Array where Element == 寶可夢牌 {
         self.filter(條件).count
     }
     
-    func 補牌組(_ 卡: 寶可夢牌, 加入 數量: Int, 數量上限: Int) -> [寶可夢牌] {
+    func 補牌(_ 卡: 寶可夢牌, 加入 數量: Int, 數量上限: Int) -> [寶可夢牌] {
         var cards: [寶可夢牌] = self
         
         let maxCount = 數量上限 - cards.count
@@ -157,7 +157,7 @@ extension Array where Element == 寶可夢牌 {
     }
     
     func 補雜牌(_ 雜牌基礎寶可夢數量: Int, 數量上限: Int) -> [寶可夢牌] {
-        補牌組(.雜牌基礎寶可夢, 加入: 雜牌基礎寶可夢數量, 數量上限: 數量上限).補雜牌(數量上限)
+        補牌(.雜牌基礎寶可夢, 加入: 雜牌基礎寶可夢數量, 數量上限: 數量上限).補雜牌(數量上限)
     }
     
     func 補雜牌(_ 數量上限: Int) -> [寶可夢牌] {
