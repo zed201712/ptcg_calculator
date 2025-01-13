@@ -7,6 +7,15 @@
 
 import Foundation
 
+extension Double {
+    func 小數點後(_ 位數: Int) -> String {
+        guard 位數 > 0 else { return String(Int(self)) }
+        
+        let formatTxt = "%.\(位數)f"
+        return .init(format: formatTxt, self)
+    }
+}
+
 class 回合統計表: MyCodable {
     static let 小數點位數 = 1
     typealias 統計資料類型 = [[Int]]
@@ -108,17 +117,10 @@ class 回合統計表: MyCodable {
     func 左右項差距次數() -> 回合統計表 {
         let result = 回合統計表.複製資料(self)
         
-        let 第一項 = result.達成次數.first!
-        let 回合範圍 = (0 ..< 第一項.count)
-        var 達成次數 = result.達成次數
-        
-        for 回合 in 回合範圍 {
-            for x in (1 ..< 達成次數.count).reversed() {
-                達成次數[x][回合] = 達成次數[x][回合] - 達成次數[x - 1][回合]
-            }
-            達成次數[0][回合] = 0//Set baseline to 0
+        result.達成次數 = result.達成次數.array2Map {x, 回合, value in
+            guard x > 0 else { return 0 }
+            return result.達成次數[x][回合] - result.達成次數[x - 1][回合]
         }
-        result.達成次數 = 達成次數
         
         return result
     }
