@@ -8,6 +8,7 @@
 import Foundation
 
 class 回合統計表: MyCodable {
+    static let 小數點位數 = 1
     typealias 統計資料類型 = [[Int]]
     
     enum 顯示類型 {
@@ -138,11 +139,9 @@ class 回合統計表: MyCodable {
         return result
     }
     
-    func 差距次數(_ 比較對象統計表: 回合統計表) -> 回合統計表 {
-        let anotherOne = 回合統計表.複製資料(比較對象統計表)
-        
+    func 製作差距表<T>(_ 比較對象統計表: 回合統計表, transform: (Int, Int)->T) -> [[T]] {
         let result = 回合統計表.複製資料(self)
-        result.名稱 = result.名稱 + "_比較_" + 比較對象統計表.名稱
+        let anotherOne = 回合統計表.複製資料(比較對象統計表)
         
         let minX = max(result.x軸範圍.lowerBound, anotherOne.x軸範圍.lowerBound)
         let maxX = min(result.x軸範圍.upperBound, anotherOne.x軸範圍.upperBound)
@@ -157,14 +156,13 @@ class 回合統計表: MyCodable {
         
         調整X(result)
         調整X(anotherOne)
-        let 回合範圍 = (0 ..< result.達成次數.first!.count)
-        for 回合 in 回合範圍 {
-            for x in (0 ..< result.達成次數.count) {
-                result.達成次數[x][回合] -= anotherOne.達成次數[x][回合]
-            }
-        }
         
-        return result
+        return result.達成次數.array2Map { x, 回合, _ in
+            transform(
+                result.達成次數[x][回合],
+                anotherOne.達成次數[x][回合]
+            )
+        }
     }
     
     private static func 疊加(_ lhs: 統計資料類型, _ rhs: 統計資料類型) -> 統計資料類型 {
@@ -217,25 +215,20 @@ class 回合統計表: MyCodable {
         return result
     }
     
-    private static func 製表(_ 達成次數: 統計資料類型, _ 小數點位數: Int, _ 測試次數: Double) -> [[String]] {
-        func 單項結果(_ 單項資料: [Int], _ 小數點位數: Int) -> [String] {
-            單項資料.enumerated().map({ 回合, 次數 in
-                let probability = (Double(次數) / 測試次數 * 100).小數點後(小數點位數)
-                return "\(probability)"
-            })
-        }
-        
-        return 達成次數.map({單項結果($0, 小數點位數)})
+    private static func 次數轉小數點(_ 次數: Int, _ 測試次數: Double) -> String {
+        let probability = (Double(次數) / 測試次數 * 100).小數點後(小數點位數)
+        return "\(probability)"
     }
-    
-    private static func 製表(_ 達成次數: 統計資料類型, transform: (Int)->String) -> [[String]] {
-        return 達成次數.array2Map(transform)
+    private static func 製表(_ 達成次數: 統計資料類型, _ 測試次數: Double) -> [[String]] {
+        return 達成次數.array2Map {
+            次數轉小數點($0, 測試次數)
+        }
     }
     
     private func 製表(_ 資料類型: 顯示資料類型) -> [[String]] {
         return (資料類型 == .百分比)
-        ? 回合統計表.製表(達成次數, 1, 測試次數)
-        : 回合統計表.製表(達成次數, transform: {String($0)})
+        ? 回合統計表.製表(達成次數, 測試次數)
+        : 達成次數.array2Map({String($0)})
     }
     
     private static func 旋轉後加標題(_ 圖表: [[String]], _ x軸範圍: ClosedRange<Int>) -> [[String]] {
@@ -275,22 +268,20 @@ class 回合統計表: MyCodable {
         }
     }
     
-    func 顯示比較結果(_ 類型: 顯示類型 = .表格, 比較 比較對象統計表: 回合統計表, 資料類型: 顯示資料類型 = .百分比) {
-        let biggerOne = max(self.測試次數整數, 比較對象統計表.測試次數整數)
-        let smallerOne = min(self.測試次數整數, 比較對象統計表.測試次數整數)
-        assert(biggerOne % smallerOne == 0, "不能被整除")
+    func 顯示比較結果(_ 類型: 顯示類型 = .表格, 比較 比較對象統計表: 回合統計表, 忽略最小值: Double = 0.1) {
+        let result = self.加總()
+        let anotherOne = 比較對象統計表.加總()
+        let comparisonTable = result.製作差距表(anotherOne) {
+            (Double($0) * 100 / result.測試次數) - (Double($1) * 100 / anotherOne.測試次數)
+        }
+        result.名稱 = result.名稱 + ".vs." + anotherOne.名稱
         
-        let result = self.修改測試次數(biggerOne / self.測試次數整數).加總()
-        let anotherOne = 比較對象統計表.修改測試次數(biggerOne / 比較對象統計表.測試次數整數).加總()
-        
-        let comparisonResult = result.差距次數(anotherOne)
-        result.名稱 = comparisonResult.名稱
-        comparisonResult.名稱 = "比較表"
-        
-        var resultTable = result.製表(資料類型)
-        let comparisonResultTable = comparisonResult.製表(資料類型)
+        var resultTable = result.製表(.百分比)
         resultTable = resultTable.array2Map { y, x, value in
-            value + "(\(comparisonResultTable[y][x]))"
+            let comparisonValue = abs(comparisonTable[y][x]) > 忽略最小值
+            ? "(\(comparisonTable[y][x].小數點後(回合統計表.小數點位數)))"
+            : ""
+            return value + comparisonValue
         }
         
         switch 類型 {
@@ -350,14 +341,14 @@ class 回合統計表: MyCodable {
     //MARK: - Tests
     static func 執行所有測試() {
         回合統計表.測試嚴格合併()
-        回合統計表.測試差距次數()
+        回合統計表.測試製作差距表()
         回合統計表.測試左右項差距次數()
         回合統計表.測試修改測試次數()
         回合統計表.測試製表()
         回合統計表.測試合併()
     }
     
-    private static func 測試差距次數() {
+    private static func 測試製作差距表() {
         let table1: 回合統計表 = 回合統計表()
         table1.重置(123, 名稱: "table1", 範圍: 2...3, 回合數上限: 2)
         table1.達成次數 = [
@@ -377,8 +368,8 @@ class 回合統計表: MyCodable {
             [1,2,3],
         ]
         
-        let newTable2 = table1.差距次數(table2)
-        let newTable3 = table1.差距次數(table3)
+        let newTable2 = table1.製作差距表(table2) {"\($0 - $1)"}
+        let newTable3 = table1.製作差距表(table3) {"\($0 - $1)"}
         assert(
             table1.達成次數 == [
                 [1,3,5],
@@ -386,20 +377,20 @@ class 回合統計表: MyCodable {
             ]
         )
         assert(
-            newTable2.達成次數 == [
-                [-8,-5,-2],
+            newTable2 == [
+                ["-8","-5","-2"],
             ]
         )
         assert(
-            newTable3.達成次數 == [
-                [-2,-3,-4],
-                [-1,-1,-1],
+            newTable3 == [
+                ["-2","-3","-4"],
+                ["-1","-1","-1"],
             ]
         )
     }
     private static func 測試製表() {
         let 達成次數 = [[10, 20, 30], [5, 15, 25]]
-        let result1 = 製表(達成次數, 1, 50.0)
+        let result1 = 製表(達成次數, 50.0)
         assert(result1 == [["20.0", "40.0", "60.0"], ["10.0", "30.0", "50.0"]])
         
         let table = 回合統計表()
@@ -410,7 +401,7 @@ class 回合統計表: MyCodable {
             [70, 80, 90]   // 應轉換為: ["70.0", "80.0", "90.0"]
         ]
         
-        let result2 = 回合統計表.製表(table.達成次數, 1, Double(table.測試次數整數))
+        let result2 = 回合統計表.製表(table.達成次數, Double(table.測試次數整數))
         
         // 驗證結果
         assert(
@@ -420,17 +411,6 @@ class 回合統計表: MyCodable {
                 ["70.0", "80.0", "90.0"]
             ],
             "製表結果不符合預期"
-        )
-        
-        // 測試小數點位數為0的情況
-        let result3 = 回合統計表.製表(table.達成次數, 0, Double(table.測試次數整數))
-        assert(
-            result3 == [
-                ["10", "20", "30"],
-                ["40", "50", "60"],
-                ["70", "80", "90"]
-            ],
-            "製表結果(無小數點)不符合預期"
         )
     }
     private static func 測試左右項差距次數() {
@@ -578,7 +558,7 @@ class 回合統計表: MyCodable {
 }
 
 extension [回合統計表] {
-    func 印出JSON(_ 名稱: String?) {
+    func 印出JSON(_ 名稱: String? = nil) {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyyMMdd"
         let 現在日期 = dateFormatter.string(from: Date())
