@@ -28,9 +28,70 @@ func debug_msg(_ 玩家: 寶可夢玩家, _ flagIndex: Int, _ array: String...) 
     }
 }
 
-func main() {
-    let startTime = Date()
+struct 單卡測試資料<玩家, 模型: 模擬測試<玩家>> {
+    let model: 模型
+    let 測試次數: Int
+    let 基礎寶可夢數量範圍: ClosedRange<Int>
     
+    let 單卡: 寶可夢牌
+}
+
+func 單卡測試<玩家, 模型: 模擬測試<玩家>>(_ 資料: 單卡測試資料<玩家, 模型>) -> [回合統計表] {
+    資料.model.設定所有出牌策略([[.init(牌: 資料.單卡, 只出一張: true)]])
+    資料.model.設定起始手牌([資料.單卡])
+    資料.model.設定基礎寶可夢數量範圍(資料.基礎寶可夢數量範圍)
+    
+    return 資料.model.loop(資料.測試次數)
+}
+
+func 顯示儲存資料(_ 類型: 回合統計表.顯示類型 = .JSON) {
+    let tableArray = jsonArray.map({回合統計表(json: $0)!})
+    for table in tableArray {
+        table.顯示結果(類型)
+    }
+}
+
+func 比較同名資料(_ 類型: 回合統計表.顯示類型 = .JSON, _ targetName: String) {
+    let tableArray = jsonArray.map({回合統計表(json: $0)!})
+    
+    //比較
+    //let targetName = "沙奈朵"
+    let targetRefTableIndex = tableArray.firstIndex(where: {$0.名稱 == "\(targetName), 無"})!
+    let targetRefTable = tableArray[targetRefTableIndex].加總()
+    let allTargetTable = (tableArray.prefix(targetRefTableIndex) + tableArray.dropFirst(targetRefTableIndex + 1)).filter({$0.名稱.hasPrefix("\(targetName)")})
+    for table in allTargetTable {
+        table.加總().顯示比較結果(類型, 比較: targetRefTable)
+    }
+}
+
+func 合併結果(_ 新資料: [回合統計表]) {
+    let 舊資料 = jsonArray.map({回合統計表(json: $0)!})
+    
+    //合併
+//    let newArray = 回合統計表.合併(tableArray + 回合統計表.組合運算後顯示結果(result + [tableArray[3]]))
+    let newArray = 回合統計表.合併(舊資料 + 新資料)
+    print("newArray[\(newArray.count)]")
+    newArray.印出JSON()
+}
+
+func 比較石板博士精靈球() {
+    let model = 模擬抽沙奈朵()
+    let 出牌策略: [寶可夢出牌策略] = [
+        .init(牌: .幻之石板, 只出一張: false),
+        .init(牌: .大木博士, 只出一張: true),
+        .init(牌: .精靈球, 只出一張: false),
+    ]
+    let 所有出牌順序 = 出牌策略.所有順序()
+    
+    model.設定所有出牌策略(所有出牌順序)
+    model.設定起始手牌([])
+    //TODO
+}
+
+func main() {
+    let 合併新資料 = false
+    let startTime = Date()
+    //單卡測試資料(model: 模擬抽寶石海星(), 測試次數: 123, 基礎寶可夢數量範圍: 0...8, 單卡: .噴火龍EX)
     
     //let model = 模擬抽皮卡丘EX()
     let model = 模擬抽寶石海星()
@@ -38,50 +99,33 @@ func main() {
     //let model = 模擬用紅卡();model.調整紅卡玩家基礎寶可夢(6)
     //let model = 模擬抽沙奈朵()
     
-    model.設定雜牌基礎寶可夢數量範圍(0...8)
+    model.設定基礎寶可夢數量範圍(0...8)
+    model.設定所有出牌策略([[]])
+    model.設定起始手牌([])
     
 //    model.設定所有出牌策略([])
 //    model.設定起始手牌([])
-    let 單卡 = 寶可夢牌.精靈球
-    model.設定所有出牌策略([[.init(牌: 單卡, 只出一張: true)]])
-    model.設定起始手牌([單卡])
-    
-    let result = model.loop(1_000_000)
-    //let result = model.loop(300_000)
-    //let result = model.loop(20_000)
-    //let result = model.loop(300)
-    //let result = model.loop(2)
+    let result =
+        //model.loop(1_000_000)
+        model.loop(300_000)
+        //model.loop(20_000)
+        //model.loop(300)
+        //model.loop(2)
     
     
     //實體測試者.執行所有測試()
     //回合統計表.執行所有測試()
     
-    //result.first!.顯示結果(.表格)
+    result.first!.顯示結果(.表格)
     
     let endTime = Date(); let costTime = Int(endTime.timeIntervalSince(startTime).rounded())
     print("花費時間: \(costTime) 秒")
-    let tableArray = jsonArray.map({回合統計表(json: $0)!})
-//    for table in tableArray {
-//        table.顯示結果(.表格)
-//    }
     
-    //比較
-//    let targetName = "沙奈朵"
-//    let targetRefTableIndex = tableArray.firstIndex(where: {$0.名稱 == "\(targetName), 無"})!
-//    let targetRefTable = tableArray[targetRefTableIndex].加總()
-//    let allTargetTable = (tableArray.prefix(targetRefTableIndex) + tableArray.dropFirst(targetRefTableIndex + 1)).filter({$0.名稱.hasPrefix("\(targetName)")})
-//    for table in allTargetTable {
-//        table.加總().顯示比較結果(.標準, 比較: targetRefTable)
-//    }
+    if 合併新資料 {
+        合併結果(result)
+    }
     
-    //合併
-//    let newArray = 回合統計表.合併(tableArray + 回合統計表.組合運算後顯示結果(result + [tableArray[3]]))
-    let newArray = 回合統計表.合併(tableArray + result)
-    print("newArray[\(newArray.count)]")
-    newArray.印出JSON()
-//    
-//    tableArray[3].顯示結果(.標準)
-//    result.first!.顯示結果(.標準)
+    
 }
 main()
 
